@@ -26,6 +26,12 @@
     return n;
   }
 
+  /* Mascot disabled pending a better design — see the matching commented-out
+     <svg> blocks in index.html (hero CTA, Join section). Flip this back to
+     true once MASCOT_SVG below is replaced with the new design, and un-comment
+     those two blocks with the same replacement. */
+  var MASCOT_ENABLED = false;
+
   /* Same mascot markup as the two static placements in index.html (hero CTA,
      Join section) — kept here too since this one is conditional (only shown
      when there's nothing on the calendar) and has to be JS-rendered. */
@@ -189,7 +195,8 @@
 
     if (!items.length) {
       var empty = el("li", "empty");
-      empty.innerHTML = MASCOT_SVG + '<span>Nothing on the calendar right now — the Discord always has the latest.</span>';
+      var emptyMsg = "Nothing on the calendar right now — the Discord always has the latest.";
+      empty.innerHTML = (MASCOT_ENABLED ? MASCOT_SVG : "") + "<span>" + emptyMsg + "</span>";
       list.appendChild(empty);
       return;
     }

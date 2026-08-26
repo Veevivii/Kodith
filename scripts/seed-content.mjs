@@ -4,7 +4,7 @@
 // site-data.js is a browser global script (`const KODITH_DATA = {...}`), not
 // a module — it can't be import()'d directly. Running it in a Node `vm`
 // sandbox reads back the global it defines without modifying the file at all.
-import "dotenv/config";
+import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
@@ -12,6 +12,10 @@ import { fileURLToPath } from "node:url";
 import { sql } from "../api/_lib/db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// `vercel env pull` writes .env.local (Vercel's own convention); a plain
+// .env also works if you set one up by hand.
+dotenv.config({ path: [".env.local", ".env"] });
 
 const src = fs.readFileSync(path.join(__dirname, "..", "site-data.js"), "utf8");
 const sandbox = {};

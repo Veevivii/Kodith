@@ -1,13 +1,18 @@
 // Applies db/schema.sql. Run with: npm run db:migrate
 // Uses DATABASE_URL_UNPOOLED — DDL should bypass the pgbouncer pooled
 // connection that the app's runtime queries use.
-import "dotenv/config";
+import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { neon } from "@neondatabase/serverless";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// `vercel env pull` writes .env.local (Vercel's own convention); a plain
+// .env also works if you set one up by hand. Whichever exists is loaded —
+// dotenv silently skips a path that isn't there.
+dotenv.config({ path: [".env.local", ".env"] });
 
 const connectionString = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 if (!connectionString) {

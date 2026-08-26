@@ -5,9 +5,13 @@
 //
 // The password is read from an env var, never a CLI argument, so it never
 // ends up in shell history.
-import "dotenv/config";
+import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { sql } from "../api/_lib/db.js";
+
+// `vercel env pull` writes .env.local (Vercel's own convention); a plain
+// .env also works if you set one up by hand.
+dotenv.config({ path: [".env.local", ".env"] });
 
 const [, , email, name] = process.argv;
 const password = process.env.SEED_ADMIN_PASSWORD;
