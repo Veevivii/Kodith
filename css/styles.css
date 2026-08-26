@@ -1,0 +1,1025 @@
+/* ==========================================================================
+   KODITH
+   Layout + design system. Content lives in /site-data.js — not here.
+
+   Contents
+     00  Fonts
+     01  Tokens
+     02  Reset & base
+     03  Layout primitives
+     04  Texture: grain, sparkles, glow
+     05  Nav
+     06  Hero
+     07  Buttons
+     08  Sections: about, pillars, upcoming, projects, team, join, faq
+     09  Closing CTA
+     10  Footer
+     11  Motion
+     12  Breakpoints
+   ========================================================================== */
+
+
+/* ==========================================================================
+   00  FONTS
+
+   Self-hosted, not loaded from Google Fonts — the site needs to render
+   correctly offline (e.g. a local preview with no network at all).
+
+   Each family below ships as ONE variable-font file covering every weight
+   the site uses; this mirrors how Google Fonts itself now serves them
+   (one file, several @font-face rules pointing at it). Only the `latin`
+   subset was pulled — see README.md if the community ever needs
+   latin-ext/cyrillic/etc. coverage.
+   ========================================================================== */
+@font-face {
+  font-family: "Pixelify Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../assets/fonts/pixelify-sans-variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/inter-variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono-variable.woff2") format("woff2");
+}
+
+
+/* ==========================================================================
+   01  TOKENS
+   ========================================================================== */
+:root {
+  --bg:          #0B0E14;
+  --surface:     #12161D;
+  --text:        #F3EFE6;
+  --text-muted:  #A9A69C;
+  --accent-warm: #FF8A4C;
+  --accent-signal:#5CFFB1;
+  --hairline:    rgba(243, 239, 230, 0.12);
+
+  /* rgb channels, for building rgba() without hard-coding twice */
+  --bg-rgb:      11, 14, 20;
+  --surface-rgb: 18, 22, 29;
+  --warm-rgb:    255, 138, 76;
+  --signal-rgb:  92, 255, 177;
+
+  /* Pixel face — headline, eyebrows and short labels ONLY. Never paragraphs. */
+  --font-display: "Pixelify Sans", ui-monospace, "Courier New", monospace;
+  /* Real San Francisco on Apple hardware; Inter everywhere else. */
+  --font-body:    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  /* Anything that is literally data should read as a readout. */
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --wrap: 1120px;
+  --gutter: 24px;
+
+  /* Vertical rhythm. The gap BETWEEN two sections is 2x this value,
+     so 32px here = 64px of air on mobile, 60px = 120px on desktop. */
+  --section-pad: 32px;
+
+  --nav-h: 64px;
+  --radius: 2px;
+
+  --ease: cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+
+/* ==========================================================================
+   02  RESET & BASE
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+img, video { height: auto; }
+
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* Keyboard focus — always visible, always the signal accent. */
+:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  z-index: 100;
+  padding: 0.75em 1.25em;
+  background: var(--accent-signal);
+  color: #04150C;
+  font-weight: 600;
+  border-radius: var(--radius);
+  transition: top 0.2s var(--ease);
+}
+.skip-link:focus { top: 12px; }
+
+/* Fixed nav would otherwise cover the target of an in-page link. */
+section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+
+/* ==========================================================================
+   03  LAYOUT PRIMITIVES
+   ========================================================================== */
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+/* Prose sections narrow the MEASURE, not the container — so every section
+   on the page still starts at the same left edge. */
+.wrap--narrow > * { max-width: 760px; }
+
+.section { padding-block: var(--section-pad); }
+
+.section__head { margin-bottom: 32px; }
+
+/* Pixel face, small and tracked out. Section labels and badges only. */
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: var(--accent-warm);
+  margin-bottom: 14px;
+}
+
+.h2 {
+  font-family: var(--font-body);
+  font-size: clamp(1.5rem, 4.2vw, 2.125rem);
+  font-weight: 600;
+  letter-spacing: -0.021em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: clamp(1.0625rem, 2.4vw, 1.1875rem);
+  line-height: 1.65;
+  color: var(--text);
+  max-width: 62ch;
+}
+.lede + .lede { margin-top: 18px; }
+.lede--sub { color: var(--text-muted); }
+
+
+/* ==========================================================================
+   04  TEXTURE — grain, sparkles, glow
+   ========================================================================== */
+
+/* Film grain. SVG turbulence tiled and blended over the art, kept at 5%.
+   Doubles as a mask for banding/compression artefacts in the video. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Four-point sparkles. Decorative punctuation, never load-bearing. */
+.sparkle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  fill: var(--text);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 2;
+}
+.sparkle--a { top: 18%;  right: 12%; width: 20px; height: 20px; fill: var(--accent-warm); }
+.sparkle--b { top: 30%;  right: 21%; width: 11px; height: 11px; }
+.sparkle--c { bottom: 26%; left: 8%;  width: 13px; height: 13px; fill: var(--accent-warm); opacity: 0.4; }
+.sparkle--d { top: 22%;  right: 14%; width: 16px; height: 16px; fill: var(--accent-warm); opacity: 0.5; }
+
+/* Mascot — a small pixel-grid character, same construction as the sparkles
+   (inline SVG, coloured via the design tokens) so it reads as part of the
+   same system rather than a bolted-on illustration. Decorative: aria-hidden,
+   never in tab order, matching the sparkle treatment above. */
+.mascot { width: 34px; height: auto; flex: none; }
+.mascot--lg { width: 48px; }
+
+/* A slow, subtle blink — the only motion the character has. Both eyes are
+   tagged .mascot__eye; briefly matching their fill to the fur colour reads
+   as "closed" without swapping any markup. */
+.js .mascot__eye { animation: mascot-blink 5.5s ease-in-out infinite; }
+@keyframes mascot-blink {
+  0%, 94%, 100% { fill: var(--bg); }
+  96%, 98%      { fill: var(--text); }
+}
+
+
+/* ==========================================================================
+   05  NAV
+   ========================================================================== */
+.nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  transition: background 0.35s var(--ease),
+              border-color 0.35s var(--ease),
+              backdrop-filter 0.35s var(--ease);
+}
+
+/* Applied by main.js once the hero has scrolled past. */
+.nav.is-stuck {
+  background: rgba(var(--surface-rgb), 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: var(--hairline);
+}
+
+.nav__inner {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  min-height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nav__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  transition: color 0.25s var(--ease), text-shadow 0.25s var(--ease);
+}
+.nav__mark:hover { color: var(--accent-warm); text-shadow: 0 0 18px rgba(var(--warm-rgb), 0.5); }
+
+.nav__menu ul {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+/* Full brightness while the bar is transparent over video; muted only once
+   the glass bar is behind them and the background is known. */
+.nav__menu a {
+  font-size: 0.9375rem;
+  color: var(--text);
+  transition: color 0.25s var(--ease), text-shadow 0.25s var(--ease);
+}
+.nav.is-stuck .nav__menu a { color: var(--text-muted); }
+.nav__menu a:hover { color: var(--accent-signal); text-shadow: 0 0 16px rgba(var(--signal-rgb), 0.45); }
+
+/* Mobile disclosure — hidden on desktop, see breakpoints. */
+.nav__toggle {
+  display: none;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.nav__toggle-box { display: block; width: 18px; }
+.nav__toggle-box span {
+  display: block;
+  height: 1.5px;
+  background: currentColor;
+  transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+}
+.nav__toggle-box span + span { margin-top: 5px; }
+.nav__toggle[aria-expanded="true"] { color: var(--text); }
+.nav__toggle[aria-expanded="true"] .nav__toggle-box span:first-child { transform: translateY(3.25px) rotate(45deg); }
+.nav__toggle[aria-expanded="true"] .nav__toggle-box span:last-child  { transform: translateY(-3.25px) rotate(-45deg); }
+
+
+/* ==========================================================================
+   06  HERO
+   ========================================================================== */
+.hero {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Fallback if the video is missing or fails: bg -> warm at 15%. */
+  background-color: var(--bg);
+  background-image: linear-gradient(160deg,
+    var(--bg) 18%,
+    rgba(var(--warm-rgb), 0.15) 62%,
+    var(--bg) 100%);
+}
+
+.hero__video,
+.hero__still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Scrim. A flat veil heavy enough for text would bury the leak, so the
+   shade is pooled where the copy actually sits and the rest of the frame is
+   left open for the video to read. Worst-case ratios are measured against
+   real frames by /tools/contrast-check.js — re-run it if you touch these. */
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    /* 1. top fade — the nav sits on bare video up here */
+    linear-gradient(to bottom,
+      rgba(var(--bg-rgb), 0.60) 0%,
+      rgba(var(--bg-rgb), 0) 16%),
+    /* 2. pool of shade under the copy column */
+    radial-gradient(78% 58% at 10% 32%,
+      rgba(var(--bg-rgb), 0.88) 0%,
+      rgba(var(--bg-rgb), 0) 72%),
+    /* 2. foot of the frame, carrying the mono meta row */
+    linear-gradient(to top,
+      rgba(var(--bg-rgb), 0.94) 0%,
+      rgba(var(--bg-rgb), 0.72) 16%,
+      rgba(var(--bg-rgb), 0) 44%),
+    /* 3. whole-frame veil so no leak ever blows out */
+    linear-gradient(to top,
+      rgba(var(--bg-rgb), 0.42) 0%,
+      rgba(var(--bg-rgb), 0.24) 100%);
+}
+
+/* Below 768px the wrap is full-bleed, so copy can reach the right edge —
+   the pool has to widen to match. */
+@media (max-width: 767px) {
+  .hero__scrim {
+    background:
+      linear-gradient(to bottom,
+        rgba(var(--bg-rgb), 0.60) 0%,
+        rgba(var(--bg-rgb), 0) 16%),
+      radial-gradient(125% 60% at 40% 34%,
+        rgba(var(--bg-rgb), 0.90) 0%,
+        rgba(var(--bg-rgb), 0) 78%),
+      linear-gradient(to top,
+        rgba(var(--bg-rgb), 0.95) 0%,
+        rgba(var(--bg-rgb), 0.78) 20%,
+        rgba(var(--bg-rgb), 0) 50%),
+      linear-gradient(to top,
+        rgba(var(--bg-rgb), 0.50) 0%,
+        rgba(var(--bg-rgb), 0.30) 100%);
+  }
+}
+
+.hero__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+  padding-block: calc(var(--nav-h) + 32px) 32px;
+}
+
+.hero__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3.25rem, 13vw, 7.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 60px rgba(var(--bg-rgb), 0.9);
+}
+
+.hero__tagline {
+  margin-top: 18px;
+  font-size: clamp(1.0625rem, 2.6vw, 1.375rem);
+  line-height: 1.5;
+  color: var(--text);
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+.hero__cta { margin-top: 32px; display: flex; align-items: center; gap: 14px; }
+
+/* Stacked label/value pairs, borrowed from the posters and repurposed
+   for identity rather than event logistics. */
+.meta {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+  font-family: var(--font-mono);
+}
+.meta__pair { min-width: 0; }
+.meta dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+.meta dd {
+  font-size: 0.8125rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.hero__hint {
+  position: absolute;
+  bottom: 26px;
+  right: var(--gutter);
+  z-index: 1;
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, transparent, var(--hairline));
+  overflow: hidden;
+}
+.hero__hint span {
+  display: block;
+  width: 1px;
+  height: 14px;
+  background: var(--accent-warm);
+  animation: hint 2.4s var(--ease) infinite;
+}
+@keyframes hint {
+  0%   { transform: translateY(-16px); opacity: 0; }
+  35%  { opacity: 1; }
+  100% { transform: translateY(46px); opacity: 0; }
+}
+
+
+/* ==========================================================================
+   07  BUTTONS
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.95em 1.75em;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  transition: transform 0.25s var(--ease),
+              box-shadow 0.25s var(--ease),
+              border-color 0.25s var(--ease),
+              color 0.25s var(--ease),
+              background 0.25s var(--ease);
+}
+
+.btn--primary {
+  background: var(--accent-warm);
+  color: #180B03;
+  font-weight: 600;
+}
+.btn--primary:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 1px rgba(var(--warm-rgb), 0.45),
+              0 10px 34px -8px rgba(var(--warm-rgb), 0.62);
+}
+
+.btn--ghost {
+  border-color: var(--hairline);
+  color: var(--text);
+}
+.btn--ghost:hover {
+  transform: scale(1.02);
+  color: var(--accent-signal);
+  border-color: rgba(var(--signal-rgb), 0.45);
+  box-shadow: 0 0 26px -8px rgba(var(--signal-rgb), 0.45);
+}
+
+
+/* ==========================================================================
+   08  SECTIONS
+   ========================================================================== */
+
+/* ---- What we do -------------------------------------------------------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.card:hover { border-color: rgba(var(--warm-rgb), 0.28); }
+.card__label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: 0.06em;
+  color: var(--accent-warm);
+  margin-bottom: 10px;
+}
+.card__text {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ---- Upcoming ---------------------------------------------------------- */
+.events { border-top: 1px solid var(--hairline); }
+.event {
+  display: grid;
+  gap: 6px 28px;
+  padding-block: 22px;
+  border-bottom: 1px solid var(--hairline);
+}
+.event__when {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  color: var(--accent-warm);
+  white-space: nowrap;
+}
+.event__time { color: var(--text-muted); }
+.event__title {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.event__blurb {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  max-width: 56ch;
+}
+.event__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.tag {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.tag--online { border-color: rgba(var(--signal-rgb), 0.35); color: var(--accent-signal); }
+.event__link {
+  font-size: 0.8125rem;
+  color: var(--accent-signal);
+  border-bottom: 1px solid rgba(var(--signal-rgb), 0.35);
+  transition: text-shadow 0.25s var(--ease);
+}
+.event__link:hover { text-shadow: 0 0 16px rgba(var(--signal-rgb), 0.5); }
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  padding-block: 24px;
+}
+
+/* ---- Projects ---------------------------------------------------------- */
+.projects {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.project {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.project:has(a:hover),
+.project:has(a:focus-visible) {
+  border-color: rgba(var(--warm-rgb), 0.35);
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px -18px rgba(var(--warm-rgb), 0.55);
+}
+.project__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.project__name { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; }
+/* Whole card clickable, without nesting interactive elements. */
+.project__name a::after { content: ""; position: absolute; inset: 0; }
+.project__tag {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.project__blurb { font-size: 0.9375rem; color: var(--text-muted); }
+.project__status {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); flex: none; }
+.dot--live { background: var(--accent-signal); }
+.dot--wip { background: var(--accent-warm); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ---- Team -------------------------------------------------------------- */
+.team {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 16px;
+}
+.member__photo {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  margin-bottom: 12px;
+}
+/* Initials stand in when there is no photo yet. */
+.member__initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+.member__name { font-size: 0.9375rem; font-weight: 500; }
+.member__role {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.member__link { transition: color 0.25s var(--ease); }
+.member__link:hover { color: var(--accent-signal); }
+
+/* ---- Join -------------------------------------------------------------- */
+.joinrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+.joinrow--center { justify-content: center; }
+
+.ticks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin-top: 28px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.ticks li { display: flex; align-items: center; gap: 8px; }
+.ticks li::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--accent-signal);
+  flex: none;
+}
+
+/* ---- FAQ --------------------------------------------------------------- */
+.faq { border-top: 1px solid var(--hairline); }
+.faq__item { border-bottom: 1px solid var(--hairline); }
+.faq__h { font-size: inherit; font-weight: inherit; }
+.faq__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 20px;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: color 0.25s var(--ease);
+}
+.faq__btn:hover { color: var(--accent-warm); }
+.faq__icon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.faq__icon::before,
+.faq__icon::after {
+  content: "";
+  position: absolute;
+  background: var(--accent-warm);
+  transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+}
+.faq__icon::before { inset-block: 0; left: 50%; width: 1.5px; margin-left: -0.75px; }
+.faq__icon::after  { inset-inline: 0; top: 50%; height: 1.5px; margin-top: -0.75px; }
+.faq__btn[aria-expanded="true"] .faq__icon::before { transform: scaleY(0); opacity: 0; }
+
+.faq__panel { overflow: hidden; }
+/* Height is driven by main.js; transition only when JS is there to set it. */
+.js .faq__panel { transition: height 0.3s var(--ease); }
+.faq__panel p {
+  padding-bottom: 22px;
+  padding-right: 32px;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  max-width: 62ch;
+}
+
+
+/* ==========================================================================
+   09  CLOSING CTA — the light leak's second appearance
+   ========================================================================== */
+.closing {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: calc(var(--section-pad) * 2.2);
+  text-align: center;
+}
+
+.closing__media { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+
+/* Same footage as the hero, held as a still frame at low opacity: the page
+   reads as one continuous atmosphere without a second video download. */
+.closing__glow {
+  position: absolute;
+  inset: -15%;
+  background-image: url("../assets/img/hero-poster.jpg");
+  background-size: cover;
+  background-position: 50% 40%;
+  transform: scaleY(-1);
+  filter: blur(26px) saturate(1.15);
+  opacity: 0.45;
+}
+/* Feather the band into the flat canvas above and below it. */
+.closing__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom,
+      var(--bg) 0%,
+      rgba(var(--bg-rgb), 0.42) 28%,
+      rgba(var(--bg-rgb), 0.42) 72%,
+      var(--bg) 100%),
+    radial-gradient(90% 120% at 50% 50%, transparent 30%, rgba(var(--bg-rgb), 0.75) 100%);
+}
+
+/* The one centred section on the page, so its measure re-centres too. */
+.closing__body { position: relative; z-index: 1; }
+.closing__body > * { margin-inline: auto; }
+.closing__h {
+  font-size: clamp(1.75rem, 5.5vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+.closing__text {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  margin-inline: auto;
+  max-width: 46ch;
+}
+.closing .eyebrow { text-align: center; }
+
+
+/* ==========================================================================
+   10  FOOTER
+   ========================================================================== */
+.footer {
+  border-top: 1px solid var(--hairline);
+  padding-block: 36px;
+}
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.footer__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+.footer__links { display: flex; flex-wrap: wrap; gap: 22px; }
+.footer__links a {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  transition: color 0.25s var(--ease);
+}
+.footer__links a:hover { color: var(--accent-signal); }
+.footer__meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+
+/* ==========================================================================
+   11  MOTION
+   ========================================================================== */
+
+/* Hero entrance. One orchestrated stagger, ~640ms end to end. */
+.js [data-enter] { opacity: 0; transform: translateY(14px); }
+.hero.is-ready [data-enter] {
+  animation: enter 0.42s var(--ease) forwards;
+}
+.hero.is-ready [data-enter="1"] { animation-delay: 0ms; }
+.hero.is-ready [data-enter="2"] { animation-delay: 80ms; }
+.hero.is-ready [data-enter="3"] { animation-delay: 160ms; }
+.hero.is-ready [data-enter="4"] { animation-delay: 220ms; }
+@keyframes enter { to { opacity: 1; transform: none; } }
+
+/* Scroll reveals. Fade + 12px, 300ms, nothing else. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.js [data-reveal].is-in { opacity: 1; transform: none; }
+
+/* Everything above is opt-in only. Reduced motion gets the final state. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .js [data-enter],
+  .js [data-reveal] { opacity: 1; transform: none; }
+
+  .btn:hover, .project:has(a:hover) { transform: none; }
+  .hero__hint { display: none; }
+}
+
+
+/* ==========================================================================
+   12  BREAKPOINTS — mobile-first, expanding up: 375 / 600 / 1024 / 1440
+   ========================================================================== */
+
+/* --- Small phones: keep the 2-up card grid readable at 375px. ----------- */
+@media (max-width: 419px) {
+  .card { padding: 16px 14px; }
+  .card__text { font-size: 0.8125rem; }
+  .meta { gap: 18px 28px; }
+}
+
+/* --- Mobile nav: disclosure panel below 768px. -------------------------- */
+@media (max-width: 767px) {
+  .nav__toggle { display: inline-flex; }
+
+  .nav__menu {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    background: rgba(var(--surface-rgb), 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-block: 1px solid var(--hairline);
+    display: none;
+  }
+  .nav__menu.is-open { display: block; }
+  .nav__menu ul {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px var(--gutter) 16px;
+  }
+  .nav__menu a {
+    display: block;
+    padding-block: 13px;
+    font-size: 1rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .nav__menu li:last-child a { border-bottom: 0; }
+}
+
+/* --- 600px and up ------------------------------------------------------- */
+@media (min-width: 600px) {
+  :root { --gutter: 32px; --section-pad: 44px; }
+
+  /* Four pillars: 2x2 here, one row of four at 1024. A 3-col step in
+     between would orphan the fourth card. */
+  .cards { gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card { padding: 24px 22px; }
+  .card__text { font-size: 0.9375rem; }
+
+  .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+  .team { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 20px; }
+
+  .event {
+    grid-template-columns: 190px minmax(0, 1fr);
+    align-items: start;
+    padding-block: 26px;
+  }
+  .event__body { grid-column: 2; }
+
+  .footer__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+}
+
+/* --- 1024px and up: full desktop rhythm --------------------------------- */
+@media (min-width: 1024px) {
+  :root { --gutter: 40px; --section-pad: 60px; --nav-h: 72px; }
+
+  body { font-size: 17px; }
+
+  .section__head { margin-bottom: 44px; }
+
+  .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  .projects { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+
+  /* Portraits, not posters — small enough that the grid reads as a row of
+     faces rather than a wall of boxes. 2 / 3 / 6 all divide a six-person
+     team evenly, so no breakpoint leaves a lone tile on its own row. */
+  .team { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 32px 24px; }
+
+  .event { grid-template-columns: 220px minmax(0, 1fr); padding-block: 30px; }
+
+  .hero__body { padding-block: calc(var(--nav-h) + 48px) 44px; }
+  .meta { gap: 24px 64px; padding-top: 36px; }
+
+  .faq__btn { font-size: 1.0625rem; padding-block: 24px; }
+}
+
+/* --- 1440px and up: a little more air, nothing wider ------------------- */
+@media (min-width: 1440px) {
+  :root { --section-pad: 72px; }
+  .sparkle--a { right: 16%; }
+  .sparkle--b { right: 24%; }
+}

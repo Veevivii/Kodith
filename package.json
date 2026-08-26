@@ -1,0 +1,22 @@
+{
+  "name": "kodith-site",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "dev": "vercel dev",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed-content": "node scripts/seed-content.mjs",
+    "db:seed-admin": "node scripts/seed-admin.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@vercel/blob": "^2.8.0",
+    "bcryptjs": "^3.0.3",
+    "iron-session": "^8.0.4"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "vercel": "^59.5.0"
+  }
+}

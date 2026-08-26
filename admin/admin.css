@@ -1,0 +1,219 @@
+/* ==========================================================================
+   KODITH ADMIN — layout only. Colors, type and buttons all come from the
+   tokens in css/styles.css, so this stays visually part of the same site.
+   ========================================================================== */
+
+.admin-body {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+/* ---- Login -------------------------------------------------------------- */
+.admin-login {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.admin-login__card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+}
+.admin-login__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+.admin-login__card .eyebrow { margin-bottom: 24px; }
+
+.admin-field {
+  display: block;
+  margin-bottom: 16px;
+}
+.admin-field span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+  width: 100%;
+  padding: 0.65em 0.8em;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+}
+.admin-field textarea { resize: vertical; min-height: 4.5em; }
+.admin-field input:focus-visible,
+.admin-field select:focus-visible,
+.admin-field textarea:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 1px;
+}
+
+.admin-login__error {
+  font-size: 0.875rem;
+  color: var(--accent-warm);
+  margin-bottom: 16px;
+}
+.admin-login__submit { width: 100%; }
+
+/* ---- Top bar -------------------------------------------------------------*/
+.admin-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--hairline);
+}
+.admin-bar__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+}
+.admin-bar__mark span { color: var(--text-muted); font-weight: 500; }
+.admin-bar__who {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.admin-bar__logout {
+  color: var(--accent-signal);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 0.4em 0.9em;
+}
+.admin-bar__logout:hover { border-color: rgba(var(--signal-rgb), 0.4); }
+
+/* ---- Main / panels -------------------------------------------------------*/
+.admin-main {
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 32px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.admin-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.admin-panel__head h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.admin-panel__add { font-size: 0.8125rem; padding: 0.6em 1.1em; }
+
+.admin-form {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 16px;
+}
+.admin-field--wide { grid-column: 1 / -1; }
+.admin-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.admin-form__error {
+  grid-column: 1 / -1;
+  font-size: 0.8125rem;
+  color: var(--accent-warm);
+}
+.admin-form__photo {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-form__photo img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+}
+
+.admin-list { border-top: 1px solid var(--hairline); }
+.admin-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--hairline);
+}
+.admin-row__body { min-width: 0; }
+.admin-row__title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.admin-row__meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.admin-row__actions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+.admin-row__actions button {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.3em 0.7em;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+.admin-row__actions button:hover { color: var(--text); border-color: var(--hairline); }
+.admin-row__actions .is-danger:hover { color: var(--accent-warm); border-color: rgba(var(--warm-rgb), 0.4); }
+
+.admin-empty {
+  padding: 20px 2px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* ---- Toast --------------------------------------------------------------*/
+.admin-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 0.7em 1.2em;
+  font-size: 0.875rem;
+  z-index: 50;
+}
+.admin-toast.is-error { border-color: rgba(var(--warm-rgb), 0.4); color: var(--accent-warm); }

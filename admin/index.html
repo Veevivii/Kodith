@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kodith — admin</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<!-- ========================= LOGIN ========================= -->
+<main class="admin-login" id="loginScreen" hidden>
+  <form class="admin-login__card" id="loginForm">
+    <p class="admin-login__mark">Kodith</p>
+    <p class="eyebrow">Admin</p>
+
+    <label class="admin-field">
+      <span>Email</span>
+      <input type="email" name="email" autocomplete="username" required>
+    </label>
+    <label class="admin-field">
+      <span>Password</span>
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+
+    <p class="admin-login__error" id="loginError" hidden></p>
+
+    <button type="submit" class="btn btn--primary admin-login__submit">Log in</button>
+  </form>
+</main>
+
+<!-- ========================= DASHBOARD ========================= -->
+<div id="dashboard" hidden>
+  <header class="admin-bar">
+    <p class="admin-bar__mark">Kodith <span>admin</span></p>
+    <div class="admin-bar__who">
+      <span id="whoami"></span>
+      <button type="button" class="admin-bar__logout" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <section class="admin-panel" id="panel-events" aria-labelledby="h-events">
+      <div class="admin-panel__head">
+        <h2 id="h-events">Upcoming</h2>
+        <button type="button" class="btn btn--ghost admin-panel__add" data-add="events">+ Add event</button>
+      </div>
+      <div class="admin-form" id="form-events" hidden></div>
+      <ul class="admin-list" id="list-events" role="list"></ul>
+    </section>
+
+    <section class="admin-panel" id="panel-projects" aria-labelledby="h-projects">
+      <div class="admin-panel__head">
+        <h2 id="h-projects">Projects</h2>
+        <button type="button" class="btn btn--ghost admin-panel__add" data-add="projects">+ Add project</button>
+      </div>
+      <div class="admin-form" id="form-projects" hidden></div>
+      <ul class="admin-list" id="list-projects" role="list"></ul>
+    </section>
+
+    <section class="admin-panel" id="panel-team" aria-labelledby="h-team">
+      <div class="admin-panel__head">
+        <h2 id="h-team">Team</h2>
+        <button type="button" class="btn btn--ghost admin-panel__add" data-add="team">+ Add team member</button>
+      </div>
+      <div class="admin-form" id="form-team" hidden></div>
+      <ul class="admin-list" id="list-team" role="list"></ul>
+    </section>
+
+  </main>
+</div>
+
+<div class="admin-toast" id="toast" hidden></div>
+
+<script src="admin.js" defer></script>
+</body>
+</html>
