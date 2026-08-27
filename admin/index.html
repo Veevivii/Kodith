@@ -6,8 +6,12 @@
 <title>Kodith — admin</title>
 <meta name="robots" content="noindex, nofollow">
 
-<link rel="stylesheet" href="../css/styles.css">
-<link rel="stylesheet" href="admin.css">
+<!-- Root-relative, not "../css/..." or "admin.css" — those break when this
+     page is served at /admin with no trailing slash (Vercel doesn't redirect
+     to add one, unlike some static servers), since the browser then resolves
+     relative paths against / instead of /admin/. -->
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/admin/admin.css">
 </head>
 <body class="admin-body">
 
@@ -76,6 +80,6 @@
 
 <div class="admin-toast" id="toast" hidden></div>
 
-<script src="admin.js" defer></script>
+<script src="/admin/admin.js" defer></script>
 </body>
 </html>
