@@ -91,6 +91,19 @@
     return v !== "" && v.charAt(0) !== "[";
   }
 
+  /* People routinely paste URLs without a scheme (LinkedIn's own share UI
+     often gives you "www.linkedin.com/in/..." with no "https://"). Setting
+     that directly as an <a href> doesn't fail loudly — the browser just
+     treats it as a path on THIS site ("kodith.vercel.app/www.linkedin...")
+     and 404s. Anything that isn't already a scheme, a root-relative path,
+     or a fragment gets "https://" assumed. */
+  function normalizeUrl(v) {
+    v = String(v || "").trim();
+    if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return v; // already has a scheme (http:, mailto:, etc.)
+    if (v.charAt(0) === "/" || v.charAt(0) === "#") return v; // root-relative or same-page anchor
+    return "https://" + v;
+  }
+
   /* ------------------------------------------------------- hero video */
 
   function setupHero() {
@@ -229,7 +242,9 @@
       if (ev.place && ev.place.charAt(0) !== "[") meta.appendChild(el("span", null, ev.place));
       if (hasLink(ev.link)) {
         var a = el("a", "event__link", "Details");
-        a.href = ev.link;
+        a.href = normalizeUrl(ev.link);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
         meta.appendChild(a);
       }
       if (meta.childNodes.length) body.appendChild(meta);
@@ -253,8 +268,9 @@
       var name = el("p", "project__name");
       if (hasLink(p.link)) {
         var a = el("a", null, p.name || "");
-        a.href = p.link;
-        a.rel = "noopener";
+        a.href = normalizeUrl(p.link);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
         name.appendChild(a);
       } else {
         name.textContent = p.name || "";
@@ -316,8 +332,9 @@
       var name = el("p", "member__name");
       if (hasLink(m.link)) {
         var a = el("a", "member__link", m.name || "");
-        a.href = m.link;
-        a.rel = "noopener";
+        a.href = normalizeUrl(m.link);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
         name.appendChild(a);
       } else {
         name.textContent = m.name || "";
