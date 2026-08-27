@@ -314,6 +314,10 @@
     dashboard.hidden = false;
     document.getElementById("whoami").textContent = who.name ? who.name + " (" + who.email + ")" : who.email;
     loadAll();
+    // The login card can leave the page scrolled partway down; without this
+    // the dashboard renders starting from wherever that scroll position
+    // happened to land, which reads as "nothing happened" until you scroll.
+    window.scrollTo(0, 0);
   }
 
   function showLogin() {
