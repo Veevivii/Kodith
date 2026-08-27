@@ -680,12 +680,21 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
 .dot--wip { background: var(--accent-warm); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-/* ---- Team -------------------------------------------------------------- */
+/* ---- Team ----------------------------------------------------------------
+   Flexbox, not grid: the team list is edited through the admin dashboard
+   and its size changes over time, so a fixed column count would leave a
+   visibly empty gap whenever the headcount doesn't divide evenly into it.
+   Grid's auto-fit only redistributes space when everything fits on one
+   row — a lone item wrapped onto a partial last row stays at its normal
+   width, leaving the exact same gap one row down. Flexbox with flex-grow
+   redistributes leftover space PER LINE, so every row — including a
+   partial last one — always stretches to cover the full width. */
 .team {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 28px 16px;
 }
+.member { flex: 1 1 120px; }
 .member__photo {
   width: 100%;
   aspect-ratio: 1;
@@ -976,7 +985,8 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
   .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
-  .team { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 20px; }
+  .team { gap: 32px 20px; }
+  .team .member { flex-basis: 140px; }
 
   .event {
     grid-template-columns: 190px minmax(0, 1fr);
@@ -1004,10 +1014,12 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
   .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
   .projects { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 
-  /* Portraits, not posters — small enough that the grid reads as a row of
-     faces rather than a wall of boxes. 2 / 3 / 6 all divide a six-person
-     team evenly, so no breakpoint leaves a lone tile on its own row. */
-  .team { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 32px 24px; }
+  /* Portraits, not posters — small enough that the row reads as faces
+     rather than a wall of boxes. flex-basis roughly caps it at 6-per-row
+     on typical desktop widths; flex-grow still stretches every row —
+     including a partial last one — to cover the full width. */
+  .team { gap: 32px 24px; }
+  .team .member { flex-basis: 150px; }
 
   .event { grid-template-columns: 220px minmax(0, 1fr); padding-block: 30px; }
 
