@@ -60,8 +60,21 @@ Two things worth knowing:
 Upload them straight through the admin dashboard's file picker on each team
 member. If the photo isn't already square, a crop tool opens automatically —
 drag to reposition, use the slider to zoom, then confirm; square photos skip
-straight to uploading. It saves to Vercel Blob and fills in the `photo`
-field for you.
+straight to uploading, byte-for-byte unchanged. It saves to Vercel Blob and
+fills in the `photo` field for you.
+
+Cropping exports at the crop's own native resolution — it never shrinks a
+photo down to some small fixed thumbnail size, and keeps PNG sources
+lossless (JPEG/HEIC-as-JPEG sources export as JPEG at quality 0.95, since
+those are already lossy and PNG wouldn't recover anything). There's a
+2000px-per-side ceiling purely to stop a pathologically huge source from
+producing an equally huge file, not a "shrink everything to this" target —
+see the comments on `CROP_OUTPUT_CAP` in `admin/admin.js` if that number
+ever needs revisiting. The one hard wall is Vercel's own 4.5MB function
+body limit (infrastructure-level, not configurable), which is why uploads
+are capped at 4.4MB — a crop or an already-square original that's still too
+big past that would need `@vercel/blob`'s client-direct-upload flow, which
+bypasses the function body entirely.
 
 Leave a member's photo empty and their initials are shown instead, which
 looks fine — an empty slot beats a stretched photo.

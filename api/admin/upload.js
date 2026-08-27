@@ -9,15 +9,21 @@
 // types (json, urlencoded, text/plain, octet-stream), and a real image type
 // like "image/png" isn't one of them, so the request's actual Content-Type
 // has to stay octet-stream regardless of what kind of image it is. This
-// needs no multipart-parsing dependency at all. Team photos are small
-// (~400x400 per the README), well under Vercel's 4.5MB function body limit,
-// so this simpler server-passthrough upload is enough; it doesn't need
-// @vercel/blob's client-direct-upload flow, which exists to bypass that
-// limit for much larger files.
+// needs no multipart-parsing dependency at all.
+//
+// The admin UI's cropper (admin/admin.js) exports at the crop's own native
+// resolution — capped, but not force-shrunk to some small thumbnail size —
+// so this passthrough upload has to tolerate genuinely large photos, not
+// just tiny ones. MAX_BYTES is set close to Vercel's hard 4.5MB function
+// body ceiling (infrastructure-level, not configurable) rather than an
+// arbitrary smaller number. If that ever proves too tight in practice, the
+// real fix is @vercel/blob's client-direct-upload flow, which bypasses the
+// function body entirely — not raising this number further, since it can't
+// go past 4.5MB regardless.
 import { put } from "@vercel/blob";
 import { requireAuth } from "../_lib/require-auth.js";
 
-const MAX_BYTES = 4 * 1024 * 1024; // stay under Vercel's 4.5MB body cap with room to spare
+const MAX_BYTES = 4.4 * 1024 * 1024; // headroom under Vercel's hard 4.5MB body ceiling
 
 export default async function handler(request, response) {
   const session = await requireAuth(request, response);
@@ -34,7 +40,7 @@ export default async function handler(request, response) {
     return;
   }
   if (body.length > MAX_BYTES) {
-    response.status(413).json({ error: "File too large (max 4MB)" });
+    response.status(413).json({ error: "File too large (max 4.4MB) — try zooming in a bit more in the cropper, which shrinks the exported area" });
     return;
   }
 

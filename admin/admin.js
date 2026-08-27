@@ -20,14 +20,21 @@
 
   /* ------------------------------------------------------------- cropper */
 
-  var CROP_STAGE = 320;   // on-screen preview size, CSS px
-  var CROP_OUTPUT = 512;  // exported square photo size, px
+  var CROP_STAGE = 320;      // on-screen preview size, CSS px — display only
+  var CROP_OUTPUT_CAP = 2000; // upper bound on exported resolution, px
 
   /**
    * Opens a drag-to-pan, slider-to-zoom square cropper over `file`.
    * Resolves with:
-   *   - `file` unchanged, if the image is already square (no cropping needed)
-   *   - a cropped JPEG Blob, if the user confirmed a crop
+   *   - `file` unchanged, if the image is already square (no cropping needed
+   *     — the original bytes are never touched, so this path is lossless)
+   *   - a cropped Blob, if the user confirmed a crop. Exported at the crop's
+   *     actual native pixel size (not shrunk to some fixed small thumbnail
+   *     size) — CROP_OUTPUT_CAP only guards against pathological source
+   *     sizes, it's not a "make everything this size" target. PNG sources
+   *     stay PNG (lossless); everything else exports as high-quality JPEG,
+   *     since a JPEG source's compression artifacts are already baked into
+   *     its pixels and re-wrapping it in PNG wouldn't recover anything.
    *   - `null`, if the user cancelled
    */
   function openCropper(file) {
@@ -148,11 +155,23 @@
         cancelBtn.addEventListener("click", function () { close(null); });
 
         useBtn.addEventListener("click", function () {
+          // Export at the crop's own native pixel size — no forced shrink
+          // to a fixed thumbnail size. The cap only stops a pathologically
+          // huge source (e.g. a 6000px photo with no zoom applied) from
+          // producing an equally huge file; it never shrinks below what
+          // the crop actually is.
+          var outSize = Math.round(Math.min(srcSize, CROP_OUTPUT_CAP));
           var out = document.createElement("canvas");
-          out.width = CROP_OUTPUT;
-          out.height = CROP_OUTPUT;
-          out.getContext("2d").drawImage(img, panX, panY, srcSize, srcSize, 0, 0, CROP_OUTPUT, CROP_OUTPUT);
-          out.toBlob(function (blob) { close(blob); }, "image/jpeg", 0.9);
+          out.width = outSize;
+          out.height = outSize;
+          out.getContext("2d").drawImage(img, panX, panY, srcSize, srcSize, 0, 0, outSize, outSize);
+
+          // PNG sources stay lossless; anything else (JPEG, WebP, HEIC-as-
+          // JPEG from iOS, etc.) exports as high-quality JPEG — those
+          // formats are already lossy, so there's nothing to preserve by
+          // switching to PNG, only file size to lose.
+          var isPng = file.type === "image/png";
+          out.toBlob(function (blob) { close(blob); }, isPng ? "image/png" : "image/jpeg", 0.95);
         });
       };
 
@@ -351,8 +370,12 @@
             if (!result) return null; // cancelled — leave any existing photo untouched
 
             var isBlob = result !== file;
-            var mimeType = isBlob ? "image/jpeg" : (file.type || "application/octet-stream");
-            var filename = isBlob ? file.name.replace(/\.\w+$/, "") + ".jpg" : file.name;
+            // The cropper picks PNG or JPEG per source format (see
+            // openCropper) — read it back from the resulting Blob rather
+            // than assuming, so this stays correct either way.
+            var mimeType = isBlob ? result.type : (file.type || "application/octet-stream");
+            var ext = mimeType === "image/png" ? ".png" : ".jpg";
+            var filename = isBlob ? file.name.replace(/\.\w+$/, "") + ext : file.name;
 
             toast("Uploading photo…");
             return result.arrayBuffer().then(function (buf) {
