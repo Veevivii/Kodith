@@ -16,6 +16,12 @@
   justify-content: center;
   padding: 24px;
 }
+/* `display: flex` above has the same specificity as the browser's default
+   [hidden] { display: none }, and author styles win that tie — so without
+   this, setting the `hidden` attribute after login does nothing visible:
+   the login screen stays laid out at full height, pushing the dashboard
+   below it out of view instead of actually disappearing. */
+.admin-login[hidden] { display: none; }
 .admin-login__card {
   width: 100%;
   max-width: 360px;
