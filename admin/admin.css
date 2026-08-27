@@ -209,6 +209,51 @@
   font-size: 0.875rem;
 }
 
+/* ---- Crop modal -----------------------------------------------------------
+   Shown only when an uploaded photo isn't already square — drag to pan,
+   slider to zoom, over a plain <canvas> preview. */
+.crop-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(var(--bg-rgb), 0.86);
+}
+.crop-modal__box {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.crop-modal__title { font-size: 0.9375rem; font-weight: 500; align-self: flex-start; }
+.crop-modal__stage {
+  width: 320px;
+  height: 320px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+}
+.crop-modal__canvas { display: block; cursor: grab; touch-action: none; }
+.crop-modal__canvas:active { cursor: grabbing; }
+.crop-modal__zoom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.crop-modal__zoom input[type="range"] { flex: 1; accent-color: var(--accent-warm); }
+.crop-modal__actions { display: flex; gap: 10px; align-self: flex-end; }
+
 /* ---- Toast --------------------------------------------------------------*/
 .admin-toast {
   position: fixed;

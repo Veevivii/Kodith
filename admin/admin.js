@@ -18,6 +18,148 @@
     toastTimer = setTimeout(function () { toastEl.hidden = true; }, 3200);
   }
 
+  /* ------------------------------------------------------------- cropper */
+
+  var CROP_STAGE = 320;   // on-screen preview size, CSS px
+  var CROP_OUTPUT = 512;  // exported square photo size, px
+
+  /**
+   * Opens a drag-to-pan, slider-to-zoom square cropper over `file`.
+   * Resolves with:
+   *   - `file` unchanged, if the image is already square (no cropping needed)
+   *   - a cropped JPEG Blob, if the user confirmed a crop
+   *   - `null`, if the user cancelled
+   */
+  function openCropper(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        resolve(file); // can't preview it — let the server have the original rather than block the upload
+      };
+
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var iw = img.naturalWidth, ih = img.naturalHeight;
+
+        if (Math.abs(iw - ih) <= 2) { resolve(file); return; } // already square — nothing to crop
+
+        var overlay = el("div", "crop-modal");
+        var box = el("div", "crop-modal__box");
+        box.appendChild(el("p", "crop-modal__title", "Crop photo"));
+
+        var stage = el("div", "crop-modal__stage");
+        var canvas = document.createElement("canvas");
+        canvas.width = CROP_STAGE;
+        canvas.height = CROP_STAGE;
+        canvas.className = "crop-modal__canvas";
+        stage.appendChild(canvas);
+        box.appendChild(stage);
+
+        var zoomRow = el("label", "crop-modal__zoom");
+        zoomRow.appendChild(el("span", null, "Zoom"));
+        var zoomInput = document.createElement("input");
+        zoomInput.type = "range";
+        zoomInput.min = "1";
+        zoomInput.max = "3";
+        zoomInput.step = "0.01";
+        zoomInput.value = "1";
+        zoomRow.appendChild(zoomInput);
+        box.appendChild(zoomRow);
+
+        var actions = el("div", "crop-modal__actions");
+        var useBtn = document.createElement("button");
+        useBtn.type = "button";
+        useBtn.className = "btn btn--primary";
+        useBtn.textContent = "Use this crop";
+        var cancelBtn = document.createElement("button");
+        cancelBtn.type = "button";
+        cancelBtn.className = "btn btn--ghost";
+        cancelBtn.textContent = "Cancel";
+        actions.appendChild(useBtn);
+        actions.appendChild(cancelBtn);
+        box.appendChild(actions);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        /* Crop state lives in SOURCE image pixel space: (panX, panY) is the
+           top-left corner of the current square crop, srcSize its side —
+           srcSize shrinks as zoom increases (zooming in = sampling a
+           smaller region of the source, stretched to fill the stage). */
+        var minDim = Math.min(iw, ih);
+        var zoom = 1;
+        var srcSize = minDim;
+        var panX = (iw - srcSize) / 2;
+        var panY = (ih - srcSize) / 2;
+
+        function clampPan() {
+          panX = Math.max(0, Math.min(panX, iw - srcSize));
+          panY = Math.max(0, Math.min(panY, ih - srcSize));
+        }
+
+        function draw() {
+          var ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, CROP_STAGE, CROP_STAGE);
+          ctx.drawImage(img, panX, panY, srcSize, srcSize, 0, 0, CROP_STAGE, CROP_STAGE);
+        }
+        draw();
+
+        zoomInput.addEventListener("input", function () {
+          // re-centre on whatever point was in the middle of the old crop,
+          // so zooming doesn't yank the view back to the image's centre
+          var cx = panX + srcSize / 2, cy = panY + srcSize / 2;
+          zoom = parseFloat(zoomInput.value);
+          srcSize = minDim / zoom;
+          panX = cx - srcSize / 2;
+          panY = cy - srcSize / 2;
+          clampPan();
+          draw();
+        });
+
+        var dragging = false, lastX = 0, lastY = 0;
+        canvas.addEventListener("pointerdown", function (e) {
+          dragging = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          canvas.setPointerCapture(e.pointerId);
+        });
+        canvas.addEventListener("pointermove", function (e) {
+          if (!dragging) return;
+          var dx = e.clientX - lastX, dy = e.clientY - lastY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          var factor = srcSize / CROP_STAGE; // stage px -> source px
+          panX -= dx * factor;
+          panY -= dy * factor;
+          clampPan();
+          draw();
+        });
+        canvas.addEventListener("pointerup", function () { dragging = false; });
+        canvas.addEventListener("pointercancel", function () { dragging = false; });
+
+        function close(result) {
+          document.body.removeChild(overlay);
+          resolve(result);
+        }
+
+        cancelBtn.addEventListener("click", function () { close(null); });
+
+        useBtn.addEventListener("click", function () {
+          var out = document.createElement("canvas");
+          out.width = CROP_OUTPUT;
+          out.height = CROP_OUTPUT;
+          out.getContext("2d").drawImage(img, panX, panY, srcSize, srcSize, 0, 0, CROP_OUTPUT, CROP_OUTPUT);
+          out.toBlob(function (blob) { close(blob); }, "image/jpeg", 0.9);
+        });
+      };
+
+      img.src = url;
+    });
+  }
+
   // Set once auth flow is wired up below — lets api() bounce back to the
   // login form on a 401 without this function needing to know about it.
   var onSessionExpired = function () {};
@@ -203,14 +345,33 @@
         fileInput.addEventListener("change", function () {
           var file = fileInput.files[0];
           if (!file) return;
-          toast("Uploading photo…");
-          file.arrayBuffer().then(function (buf) {
-            return fetch("/api/admin/upload", {
-              method: "POST",
-              headers: { "content-type": file.type || "application/octet-stream", "x-filename": file.name },
-              body: buf,
-            });
-          }).then(function (r) { return r.json(); }).then(function (body) {
+
+          openCropper(file).then(function (result) {
+            fileInput.value = ""; // let the same file be re-picked later if cancelled
+            if (!result) return null; // cancelled — leave any existing photo untouched
+
+            var isBlob = result !== file;
+            var mimeType = isBlob ? "image/jpeg" : (file.type || "application/octet-stream");
+            var filename = isBlob ? file.name.replace(/\.\w+$/, "") + ".jpg" : file.name;
+
+            toast("Uploading photo…");
+            return result.arrayBuffer().then(function (buf) {
+              return fetch("/api/admin/upload", {
+                method: "POST",
+                // The actual request Content-Type must stay octet-stream —
+                // Vercel's Node runtime only auto-parses request.body into a
+                // Buffer for a fixed short list of content types (json,
+                // urlencoded, text/plain, octet-stream); a real image MIME
+                // type like "image/png" isn't one of them, so the server
+                // would never see a parsed body at all. The real type still
+                // needs to reach the server (so the stored blob reports the
+                // right content type), so it rides along in a custom header.
+                headers: { "content-type": "application/octet-stream", "x-filename": filename, "x-content-type": mimeType },
+                body: buf,
+              });
+            }).then(function (r) { return r.json(); });
+          }).then(function (body) {
+            if (!body) return; // cancelled — nothing more to do
             if (body.error) throw new Error(body.error);
             uploadedPhotoUrl = body.url;
             preview.src = body.url;

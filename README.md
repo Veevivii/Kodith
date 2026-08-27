@@ -58,8 +58,10 @@ Two things worth knowing:
 ### Team photos
 
 Upload them straight through the admin dashboard's file picker on each team
-member — square, around 400×400 works best. It uploads to Vercel Blob and
-fills in the `photo` field for you.
+member. If the photo isn't already square, a crop tool opens automatically —
+drag to reposition, use the slider to zoom, then confirm; square photos skip
+straight to uploading. It saves to Vercel Blob and fills in the `photo`
+field for you.
 
 Leave a member's photo empty and their initials are shown instead, which
 looks fine — an empty slot beats a stretched photo.

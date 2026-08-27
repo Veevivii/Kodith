@@ -2,14 +2,18 @@
 // Blob and returns its public URL for the admin UI to save into a team
 // member's `photo` field.
 //
-// The client sends raw file bytes with Content-Type: application/octet-stream
-// and the filename in an `x-filename` header, rather than multipart/form-data
-// — Vercel's Node runtime auto-parses request.body into a Buffer for
-// octet-stream, so this needs no multipart-parsing dependency at all. Team
-// photos are small (~400x400 per the README), well under Vercel's 4.5MB
-// function body limit, so this simpler server-passthrough upload is enough;
-// it doesn't need @vercel/blob's client-direct-upload flow, which exists to
-// bypass that limit for much larger files.
+// The client always sends the actual HTTP request as
+// Content-Type: application/octet-stream, with the filename in `x-filename`
+// and the photo's real MIME type in `x-content-type` — Vercel's Node runtime
+// only auto-parses request.body into a Buffer for a fixed list of content
+// types (json, urlencoded, text/plain, octet-stream), and a real image type
+// like "image/png" isn't one of them, so the request's actual Content-Type
+// has to stay octet-stream regardless of what kind of image it is. This
+// needs no multipart-parsing dependency at all. Team photos are small
+// (~400x400 per the README), well under Vercel's 4.5MB function body limit,
+// so this simpler server-passthrough upload is enough; it doesn't need
+// @vercel/blob's client-direct-upload flow, which exists to bypass that
+// limit for much larger files.
 import { put } from "@vercel/blob";
 import { requireAuth } from "../_lib/require-auth.js";
 
@@ -39,7 +43,7 @@ export default async function handler(request, response) {
   try {
     const blob = await put(`team/${Date.now()}-${filename}`, body, {
       access: "public",
-      contentType: request.headers["content-type"] || "application/octet-stream",
+      contentType: request.headers["x-content-type"] || "application/octet-stream",
     });
     response.status(200).json({ url: blob.url });
   } catch (err) {
