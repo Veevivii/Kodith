@@ -202,6 +202,8 @@
 }
 .admin-row__actions button:hover { color: var(--text); border-color: var(--hairline); }
 .admin-row__actions .is-danger:hover { color: var(--accent-warm); border-color: rgba(var(--warm-rgb), 0.4); }
+.admin-row__actions button:disabled { opacity: 0.3; cursor: default; }
+.admin-row__actions button:disabled:hover { color: var(--text-muted); border-color: var(--hairline); }
 
 .admin-empty {
   padding: 20px 2px;

@@ -234,6 +234,7 @@
       endpoint: "/api/admin/team",
       title: function (row) { return row.name || "(untitled)"; },
       meta: function (row) { return row.role || ""; },
+      reorderable: true, // team display order matters on the public site; events sort by date and projects have no visible order, so only this one gets Up/Down controls
       fields: [
         { name: "name", label: "Name", type: "text", required: true },
         { name: "role", label: "Role", type: "text" },
@@ -274,7 +275,7 @@
       return;
     }
 
-    rows.forEach(function (row) {
+    rows.forEach(function (row, index) {
       var li = el("li", "admin-row");
 
       var body = el("div", "admin-row__body");
@@ -286,6 +287,26 @@
       body.appendChild(meta);
 
       var actions = el("div", "admin-row__actions");
+
+      if (resource.reorderable) {
+        var upBtn = el("button");
+        upBtn.type = "button";
+        upBtn.textContent = "↑";
+        upBtn.setAttribute("aria-label", "Move up");
+        upBtn.disabled = index === 0;
+        upBtn.addEventListener("click", function () { handleReorder(key, index, -1); });
+
+        var downBtn = el("button");
+        downBtn.type = "button";
+        downBtn.textContent = "↓";
+        downBtn.setAttribute("aria-label", "Move down");
+        downBtn.disabled = index === rows.length - 1;
+        downBtn.addEventListener("click", function () { handleReorder(key, index, 1); });
+
+        actions.appendChild(upBtn);
+        actions.appendChild(downBtn);
+      }
+
       var editBtn = el("button");
       editBtn.type = "button";
       editBtn.textContent = "Edit";
@@ -303,6 +324,46 @@
       li.appendChild(actions);
       listEl.appendChild(li);
     });
+  }
+
+  /* Swaps `index` with its neighbour (direction -1 = up, +1 = down), then
+     persists both rows' new sort_order. The PATCH endpoint requires the
+     full field set, not a partial patch (see api/admin/*.js), so each
+     request resends that row's existing name/role/etc. unchanged alongside
+     the new sort_order — state[key] already holds complete rows, so this
+     needs no extra fetch. */
+  function handleReorder(key, index, direction) {
+    var resource = RESOURCES[key];
+    var rows = state[key];
+    var target = index + direction;
+    if (target < 0 || target >= rows.length) return;
+
+    var a = rows[index], b = rows[target];
+    var aOrder = a.sort_order, bOrder = b.sort_order;
+
+    // Optimistic: swap array positions immediately so the UI reflects the
+    // new order right away. Array position (not the sort_order value on
+    // the object) is what renderList actually displays, so nothing further
+    // needs to change here once the PATCHes below land — only each row's
+    // own .sort_order property needs to end up correct, for any later
+    // reorder that reads it back off the same object.
+    rows[index] = b;
+    rows[target] = a;
+    renderList(key);
+
+    function patchRow(row, newOrder) {
+      var payload = {};
+      resource.fields.forEach(function (f) { payload[f.name] = row[f.name]; });
+      payload.sort_order = newOrder;
+      return api(resource.endpoint + "?id=" + row.id, { method: "PATCH", jsonBody: payload })
+        .then(function (updated) { row.sort_order = updated.sort_order; });
+    }
+
+    Promise.all([patchRow(a, bOrder), patchRow(b, aOrder)])
+      .catch(function (err) {
+        toast(err.message, true);
+        loadAll(); // drifted from the server — resync rather than leave it wrong
+      });
   }
 
   function handleDelete(key, row) {

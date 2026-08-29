@@ -38,10 +38,14 @@ edit, or remove:
 | ------------ | ---------------------------------- |
 | **Upcoming** | the next 2–3 workshops or meetups  |
 | **Projects** | things members have built          |
-| **Team**     | the core team grid, including photo upload |
+| **Team**     | the core team grid, including photo upload and reordering |
 
 Changes save straight to the database and show up on the live site on the
 next page load — no file to edit, no deploy to trigger.
+
+Team members have **↑ / ↓** buttons in the dashboard to reorder them — the
+public site displays the team in that same order. Events sort by date and
+projects have no visible order, so only Team gets reorder controls.
 
 `site-data.js` still exists as the fallback data source (used only when the
 `/api/data` backend is unreachable) and as the one-time seed for the database
