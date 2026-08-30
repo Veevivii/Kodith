@@ -30,7 +30,13 @@ export default async function handler(request, response) {
       ORDER BY sort_order ASC, id ASC
     `;
 
-    response.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=300");
+    // No CDN caching. This feed is edited through /admin and people expect
+    // to see their change on the live site straight away — an earlier
+    // `s-maxage=30, stale-while-revalidate=300` let the CDN serve content
+    // up to five minutes stale, which reads as "my edit didn't save".
+    // This site's traffic is nowhere near high enough for the saved
+    // function invocations to be worth that confusion.
+    response.setHeader("Cache-Control", "no-store");
     response.status(200).json({ upcoming: events, projects, team });
   } catch (err) {
     console.error("GET /api/data failed:", err);

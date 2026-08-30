@@ -46,10 +46,16 @@ export default async function handler(request, response) {
         response.status(400).json({ error: "name is required" });
         return;
       }
+      // COALESCE, not `?? 0`: the edit form only sends the visible fields,
+      // so an ordinary edit arrives with no sort_order at all. Defaulting
+      // that to 0 silently reset the member's position every time anyone
+      // edited them — and once several rows sat at 0, reordering had
+      // nothing to swap and the list fell back to id order.
+      const nextOrder = (sort_order === undefined || sort_order === null) ? null : Number(sort_order);
       const [row] = await sql`
         UPDATE team_members
         SET name=${name}, role=${role || ""}, photo=${photo || ""}, link=${link || ""},
-            sort_order=${sort_order ?? 0}, updated_at=now()
+            sort_order = COALESCE(${nextOrder}::int, sort_order), updated_at=now()
         WHERE id=${id}
         RETURNING id, name, role, photo, link, sort_order
       `;

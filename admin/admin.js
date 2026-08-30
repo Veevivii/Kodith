@@ -338,32 +338,32 @@
     var target = index + direction;
     if (target < 0 || target >= rows.length) return;
 
-    var a = rows[index], b = rows[target];
-    var aOrder = a.sort_order, bOrder = b.sort_order;
-
-    // Optimistic: swap array positions immediately so the UI reflects the
-    // new order right away. Array position (not the sort_order value on
-    // the object) is what renderList actually displays, so nothing further
-    // needs to change here once the PATCHes below land — only each row's
-    // own .sort_order property needs to end up correct, for any later
-    // reorder that reads it back off the same object.
-    rows[index] = b;
-    rows[target] = a;
+    // Optimistic: swap array positions so the UI updates immediately.
+    var moved = rows[index];
+    rows[index] = rows[target];
+    rows[target] = moved;
     renderList(key);
 
-    function patchRow(row, newOrder) {
+    // Renumber against the array's new positions rather than swapping the
+    // two rows' existing sort_order values. Swapping assumes those values
+    // are already distinct — if several rows share one (as happened when
+    // an older bug reset edited rows to 0), swapping two equal values is a
+    // no-op and the order silently snaps back on reload. Renumbering is
+    // self-healing: it always writes a clean 0..n-1 sequence.
+    var changed = rows.filter(function (row, i) { return row.sort_order !== i; });
+    if (!changed.length) return;
+
+    Promise.all(changed.map(function (row) {
+      var newOrder = rows.indexOf(row);
       var payload = {};
       resource.fields.forEach(function (f) { payload[f.name] = row[f.name]; });
       payload.sort_order = newOrder;
       return api(resource.endpoint + "?id=" + row.id, { method: "PATCH", jsonBody: payload })
         .then(function (updated) { row.sort_order = updated.sort_order; });
-    }
-
-    Promise.all([patchRow(a, bOrder), patchRow(b, aOrder)])
-      .catch(function (err) {
-        toast(err.message, true);
-        loadAll(); // drifted from the server — resync rather than leave it wrong
-      });
+    })).catch(function (err) {
+      toast(err.message, true);
+      loadAll(); // drifted from the server — resync rather than leave it wrong
+    });
   }
 
   function handleDelete(key, row) {

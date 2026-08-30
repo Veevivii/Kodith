@@ -45,10 +45,14 @@ export default async function handler(request, response) {
         response.status(400).json({ error: "name is required" });
         return;
       }
+      // COALESCE rather than `?? 0` — see the matching comment in team.js:
+      // an ordinary edit sends no sort_order, and defaulting it to 0 would
+      // silently collapse every edited row to the same position.
+      const nextOrder = (sort_order === undefined || sort_order === null) ? null : Number(sort_order);
       const [row] = await sql`
         UPDATE projects
         SET name=${name}, blurb=${blurb || ""}, tag=${tag || ""}, status=${status || "Live"},
-            link=${link || ""}, sort_order=${sort_order ?? 0}, updated_at=now()
+            link=${link || ""}, sort_order = COALESCE(${nextOrder}::int, sort_order), updated_at=now()
         WHERE id=${id}
         RETURNING id, name, blurb, tag, status, link, sort_order
       `;
