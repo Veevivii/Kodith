@@ -875,11 +875,24 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
   font-weight: 700;
   font-size: 1.125rem;
 }
-.footer__links { display: flex; flex-wrap: wrap; gap: 22px; }
+.footer__links { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Icon links rather than words. The <a> is padded out to a ~44px target
+   even though the glyph is 18px — an 18px tap target would be far too
+   small on a phone, and the padding is invisible against the footer. */
 .footer__links a {
-  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   color: var(--text-muted);
+  border-radius: var(--radius);
   transition: color 0.25s var(--ease);
+}
+.footer__icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor; /* so the link's colour/hover drives the glyph */
 }
 .footer__links a:hover { color: var(--accent-signal); }
 .footer__meta {
