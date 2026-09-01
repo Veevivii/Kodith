@@ -22,9 +22,13 @@ assets/fonts/         self-hosted type — see "Fonts", below
 tools/                contrast checker (developers only, see below)
 
 admin/                the dashboard UI (login + CRUD for events/projects/team)
+admin/cards/          the member e-card page (see "Member cards", below)
+admin/admin-shared.js login / session / logout, shared by every admin page
 api/                  Vercel serverless functions: public data feed, auth, admin CRUD
+api/id.js             public card verification page, served at /id/<hexId>
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
+vercel.json           one rewrite: the pretty /id/<hexId> URL -> api/id.js
 ```
 
 ---
@@ -201,8 +205,12 @@ and clicking through integrations isn't something to script):
    Postgres database and injects `DATABASE_URL` / `DATABASE_URL_UNPOOLED`.
 3. In the same dashboard: enable **Vercel Blob** — injects
    `BLOB_READ_WRITE_TOKEN` (used for team photo uploads).
-4. Set one more environment variable yourself: `SESSION_SECRET`, a random
-   32+ character string (`openssl rand -base64 32`).
+4. Set two environment variables yourself:
+   - `SESSION_SECRET` — a random 32+ character string
+     (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`).
+   - `CARD_ID_SALT` — the secret salt for member card IDs
+     (`node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"`).
+     See **Member cards** below; treat this one as permanent.
 
 Then, from a machine with those env vars available locally (`vercel env pull
 .env.local` after `vercel link`, or copy `.env.example` to `.env.local` and
@@ -228,6 +236,49 @@ SEED_ADMIN_PASSWORD="their password" node scripts/seed-admin.mjs "name@example.c
 ```
 
 They can then log in at `/admin`.
+
+### Member cards
+
+`/admin/cards` manages member e-cards: name, email, a card ID, a mint
+number and the issue date. It sits behind the same login as the rest of
+the admin — same session cookie, and every endpoint it calls is behind
+`requireAuth()` server-side.
+
+**A note on how "protected" works here.** The admin HTML files are public
+static files; anyone can fetch `/admin` or `/admin/cards` and get the page
+shell. There's no server-side route wall. What actually protects the data
+is that every API route checks the session, and the page shows only a login
+form until that check passes. That's the same posture the content admin has
+always had — worth knowing precisely, rather than assuming the URL itself
+is gated.
+
+**Card IDs.** `hex_id` is `sha256(name + email + CARD_ID_SALT)`, first 8 hex
+characters, uppercased. The salt is what stops the ID being computable by
+anyone who knows a member's name and email, so:
+
+- `CARD_ID_SALT` must be set in Vercel's environment variables, alongside
+  `SESSION_SECRET`. Without it, adding a member fails with a clear message
+  rather than minting a guessable ID.
+- Treat it as permanent. Changing it won't alter already-issued cards
+  (their IDs are stored in the database), but new cards would be minted
+  from a different secret than the old ones.
+
+Because the ID is derived from name and email, adding the same person twice
+is rejected as a duplicate. Editing a member changes their name/email but
+deliberately **keeps** their existing `hex_id` and `mint_number` — the card
+may already be printed or shared, so its identity has to stay stable.
+
+**Export CSV** downloads `name,email,hex_id,mint_number,issued_at`. That
+column order is a contract with the offline card-image generator — don't
+reorder or insert columns without updating that script too. Values are
+RFC 4180 escaped, so a comma or quote in a name won't shift the columns.
+
+**Public verification** lives at `/id/<hexId>` — no login, that's the point.
+It's rendered server-side by `api/id.js` (reached via the rewrite in
+`vercel.json`), which means it works with JavaScript disabled, returns a
+real 404 for an unknown ID, and — importantly — there is no public members
+endpoint to enumerate. It shows name, member-since year and mint number
+only; email is never exposed publicly.
 
 ### Local development
 

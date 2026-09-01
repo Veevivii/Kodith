@@ -16,12 +16,14 @@
   justify-content: center;
   padding: 24px;
 }
-/* `display: flex` above has the same specificity as the browser's default
-   [hidden] { display: none }, and author styles win that tie — so without
-   this, setting the `hidden` attribute after login does nothing visible:
-   the login screen stays laid out at full height, pushing the dashboard
-   below it out of view instead of actually disappearing. */
-.admin-login[hidden] { display: none; }
+/* Any component given an explicit `display:` beats the browser's default
+   [hidden] { display: none } — same specificity, and author styles win the
+   tie. That silently breaks the `hidden` attribute: the login screen stayed
+   full-height and pushed the dashboard out of view, and the add/edit form
+   rendered as an empty box above every list. Rather than patching each
+   component as it bites, this makes `hidden` mean hidden everywhere in the
+   admin — which is what the attribute is for. */
+[hidden] { display: none !important; }
 .admin-login__card {
   width: 100%;
   max-width: 360px;
@@ -91,6 +93,30 @@
   font-size: 1.0625rem;
 }
 .admin-bar__mark span { color: var(--text-muted); font-weight: 500; }
+/* Section nav (Content / Cards). Sits between the wordmark and the
+   who-am-I block in the top bar. */
+.admin-nav {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+  margin-left: 24px;
+}
+.admin-nav a {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  padding: 0.4em 0.8em;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+.admin-nav a:hover { color: var(--text); }
+.admin-nav a.is-current {
+  color: var(--text);
+  border-color: var(--hairline);
+  background: var(--bg);
+}
+
 .admin-bar__who {
   display: flex;
   align-items: center;
@@ -209,6 +235,77 @@
   padding: 20px 2px;
   color: var(--text-muted);
   font-size: 0.875rem;
+}
+
+/* ---- Members table ------------------------------------------------------
+   The cards page shows five columns, which is wider than the content panels
+   — hence admin-main--wide and the horizontal scroll wrapper for narrow
+   screens (the table itself must not force the page to scroll sideways). */
+.admin-main--wide { max-width: 1080px; }
+
+.admin-panel__actions { display: flex; gap: 10px; }
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--hairline);
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.admin-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 14px 16px 14px 2px;
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+.admin-table td {
+  padding: 14px 16px 14px 2px;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: middle;
+}
+.admin-table tr:last-child td { border-bottom: 0; }
+.admin-table__muted { color: var(--text-muted); }
+.admin-table__mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.admin-table__hex {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--accent-warm);
+  border-bottom: 1px solid rgba(var(--warm-rgb), 0.3);
+  white-space: nowrap;
+}
+.admin-table__hex:hover { border-bottom-color: var(--accent-warm); }
+.admin-table td:last-child { text-align: right; }
+
+.admin-form__note {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---- Crop modal -----------------------------------------------------------

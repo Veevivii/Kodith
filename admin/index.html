@@ -40,6 +40,10 @@
 <div id="dashboard" hidden>
   <header class="admin-bar">
     <p class="admin-bar__mark">Kodith <span>admin</span></p>
+    <nav class="admin-nav" aria-label="Admin sections">
+      <a href="/admin" class="is-current" aria-current="page">Content</a>
+      <a href="/admin/cards">Cards</a>
+    </nav>
     <div class="admin-bar__who">
       <span id="whoami"></span>
       <button type="button" class="admin-bar__logout" id="logoutBtn">Log out</button>
@@ -80,6 +84,7 @@
 
 <div class="admin-toast" id="toast" hidden></div>
 
+<script src="/admin/admin-shared.js" defer></script>
 <script src="/admin/admin.js" defer></script>
 </body>
 </html>

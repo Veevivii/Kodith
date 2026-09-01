@@ -39,6 +39,27 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Card-holding community members. Distinct from `team_members` below, which
+-- is the small core team shown on the public site — these are everyone
+-- issued a member e-card, and this table is only ever read by the admin
+-- Cards page and the public /id/<hexId> verification page.
+--
+-- hex_id is derived from the member's details plus a server-side secret
+-- (see api/_lib/card-id.js) and is UNIQUE: it is the card's identity, so a
+-- collision must fail loudly rather than quietly issue a duplicate card.
+-- mint_number is the sequential "#N member" badge and is likewise UNIQUE.
+CREATE TABLE IF NOT EXISTS members (
+  id           SERIAL PRIMARY KEY,
+  name         TEXT NOT NULL DEFAULT '',
+  email        TEXT NOT NULL DEFAULT '',
+  hex_id       TEXT NOT NULL UNIQUE,
+  mint_number  INTEGER NOT NULL UNIQUE,
+  issued_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS members_hex_id_idx ON members (hex_id);
+
 -- "team" is a reserved-enough word to cause confusion against the frontend's
 -- `team` key in the /api/data response — table is team_members, JSON key stays `team`.
 CREATE TABLE IF NOT EXISTS team_members (

@@ -8,15 +8,10 @@
 (function () {
   "use strict";
 
-  var toastEl = document.getElementById("toast");
-  var toastTimer = null;
-  function toast(message, isError) {
-    toastEl.textContent = message;
-    toastEl.hidden = false;
-    toastEl.classList.toggle("is-error", !!isError);
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 3200);
-  }
+  // toast, api and the whole login/session/logout flow live in
+  // admin-shared.js, shared with /admin/cards.
+  var toast = window.KodithAdmin.toast;
+  var api = window.KodithAdmin.api;
 
   /* ------------------------------------------------------------- cropper */
 
@@ -176,28 +171,6 @@
       };
 
       img.src = url;
-    });
-  }
-
-  // Set once auth flow is wired up below — lets api() bounce back to the
-  // login form on a 401 without this function needing to know about it.
-  var onSessionExpired = function () {};
-
-  function api(path, options) {
-    options = options || {};
-    options.headers = options.headers || {};
-    if (options.jsonBody !== undefined) {
-      options.headers["content-type"] = "application/json";
-      options.body = JSON.stringify(options.jsonBody);
-      delete options.jsonBody;
-    }
-    return fetch(path, options).then(function (r) {
-      if (r.status === 401 && path !== "/api/auth/session") onSessionExpired();
-      if (r.status === 204) return null;
-      return r.json().then(function (body) {
-        if (!r.ok) throw new Error(body.error || ("Request failed (" + r.status + ")"));
-        return body;
-      });
     });
   }
 
@@ -547,53 +520,11 @@
     });
   });
 
-  /* ---------------------------------------------------------- auth flow */
+  /* ---------------------------------------------------------------- go */
 
-  var loginScreen = document.getElementById("loginScreen");
-  var dashboard = document.getElementById("dashboard");
-  var loginForm = document.getElementById("loginForm");
-  var loginError = document.getElementById("loginError");
-
-  function showDashboard(who) {
-    loginScreen.hidden = true;
-    dashboard.hidden = false;
-    document.getElementById("whoami").textContent = who.name ? who.name + " (" + who.email + ")" : who.email;
+  // Login / session / logout are handled by admin-shared.js; this runs
+  // once the session is confirmed.
+  window.KodithAdmin.start(function () {
     loadAll();
-    // The login card can leave the page scrolled partway down; without this
-    // the dashboard renders starting from wherever that scroll position
-    // happened to land, which reads as "nothing happened" until you scroll.
-    window.scrollTo(0, 0);
-  }
-
-  function showLogin() {
-    dashboard.hidden = true;
-    loginScreen.hidden = false;
-  }
-
-  // A 401 from any admin call means the session expired mid-use — bounce
-  // back to the login form rather than leaving a half-broken dashboard up.
-  onSessionExpired = function () { showLogin(); };
-
-  loginForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    loginError.hidden = true;
-    var formData = new FormData(loginForm);
-    api("/api/auth/login", {
-      method: "POST",
-      jsonBody: { email: formData.get("email"), password: formData.get("password") },
-    })
-      .then(function (body) { showDashboard(body); })
-      .catch(function (err) {
-        loginError.textContent = err.message;
-        loginError.hidden = false;
-      });
   });
-
-  document.getElementById("logoutBtn").addEventListener("click", function () {
-    api("/api/auth/logout", { method: "POST" }).then(showLogin).catch(function () { showLogin(); });
-  });
-
-  api("/api/auth/session").then(function (body) {
-    if (body.authenticated) showDashboard(body); else showLogin();
-  }).catch(showLogin);
 })();

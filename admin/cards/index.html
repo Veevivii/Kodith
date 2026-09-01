@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kodith — admin — cards</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Root-relative, not relative: this page is served at /admin/cards with no
+     trailing slash, so relative paths would resolve against /admin/ (or /). -->
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="admin-body">
+
+<!-- ========================= LOGIN =========================
+     Same markup and same shared auth flow as /admin — this page is gated by
+     exactly the same session, and every endpoint it calls is behind
+     requireAuth() server-side. -->
+<main class="admin-login" id="loginScreen" hidden>
+  <form class="admin-login__card" id="loginForm">
+    <p class="admin-login__mark">Kodith</p>
+    <p class="eyebrow">Admin</p>
+
+    <label class="admin-field">
+      <span>Email</span>
+      <input type="email" name="email" autocomplete="username" required>
+    </label>
+    <label class="admin-field">
+      <span>Password</span>
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+
+    <p class="admin-login__error" id="loginError" hidden></p>
+
+    <button type="submit" class="btn btn--primary admin-login__submit">Log in</button>
+  </form>
+</main>
+
+<!-- ========================= CARDS ========================= -->
+<div id="dashboard" hidden>
+  <header class="admin-bar">
+    <p class="admin-bar__mark">Kodith <span>admin</span></p>
+    <nav class="admin-nav" aria-label="Admin sections">
+      <a href="/admin">Content</a>
+      <a href="/admin/cards" class="is-current" aria-current="page">Cards</a>
+    </nav>
+    <div class="admin-bar__who">
+      <span id="whoami"></span>
+      <button type="button" class="admin-bar__logout" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main class="admin-main admin-main--wide">
+    <section class="admin-panel" aria-labelledby="h-cards">
+      <div class="admin-panel__head">
+        <h2 id="h-cards">Member cards</h2>
+        <div class="admin-panel__actions">
+          <a class="btn btn--ghost admin-panel__add" id="exportBtn" href="/api/admin/members-export">Export CSV</a>
+          <button type="button" class="btn btn--ghost admin-panel__add" id="addBtn">+ Add member</button>
+        </div>
+      </div>
+
+      <div class="admin-form" id="form-members" hidden></div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="members-table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Hex ID</th>
+              <th scope="col">Mint</th>
+              <th scope="col">Issued</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="members-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="admin-toast" id="toast" hidden></div>
+
+<script src="/admin/admin-shared.js" defer></script>
+<script src="/admin/cards/cards.js" defer></script>
+</body>
+</html>
