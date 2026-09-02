@@ -46,7 +46,16 @@ window.KodithAdmin = (function () {
       if (r.status === 401 && path !== "/api/auth/session") onSessionExpired();
       if (r.status === 204) return null;
       return r.json().then(function (body) {
-        if (!r.ok) throw new Error(body.error || ("Request failed (" + r.status + ")"));
+        if (!r.ok) {
+          var err = new Error(body.error || ("Request failed (" + r.status + ")"));
+          // Keep the whole response on the error: some endpoints send
+          // structured detail alongside the message (the CSV import returns
+          // the offending line numbers), and a caller that wants it has no
+          // other way to reach it once the body is consumed here.
+          err.data = body;
+          err.status = r.status;
+          throw err;
+        }
         return body;
       });
     });

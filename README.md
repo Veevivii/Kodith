@@ -26,6 +26,7 @@ admin/cards/          the member e-card page (see "Member cards", below)
 admin/admin-shared.js login / session / logout, shared by every admin page
 api/                  Vercel serverless functions: public data feed, auth, admin CRUD
 api/id.js             public card verification page, served at /id/<hexId>
+api/_lib/csv.js       RFC 4180 CSV parser used by the member import
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
 vercel.json           one rewrite: the pretty /id/<hexId> URL -> api/id.js
@@ -205,12 +206,9 @@ and clicking through integrations isn't something to script):
    Postgres database and injects `DATABASE_URL` / `DATABASE_URL_UNPOOLED`.
 3. In the same dashboard: enable **Vercel Blob** — injects
    `BLOB_READ_WRITE_TOKEN` (used for team photo uploads).
-4. Set two environment variables yourself:
-   - `SESSION_SECRET` — a random 32+ character string
-     (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`).
-   - `CARD_ID_SALT` — the secret salt for member card IDs
-     (`node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"`).
-     See **Member cards** below; treat this one as permanent.
+4. Set one environment variable yourself: `SESSION_SECRET`, a random 32+
+   character string
+   (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`).
 
 Then, from a machine with those env vars available locally (`vercel env pull
 .env.local` after `vercel link`, or copy `.env.example` to `.env.local` and
@@ -252,26 +250,34 @@ form until that check passes. That's the same posture the content admin has
 always had — worth knowing precisely, rather than assuming the URL itself
 is gated.
 
-**Card IDs.** `hex_id` is `sha256(name + email + CARD_ID_SALT)`, first 8 hex
-characters, uppercased. The salt is what stops the ID being computable by
-anyone who knows a member's name and email, so:
+**The offline card script owns the IDs.** `hex_id` and `mint_number` are
+minted by the separate offline card-image script, and this site never
+generates either one. It imports and displays what that script produced.
+That is deliberate: if the site minted its own IDs, it could hand someone an
+identity that disagrees with the card they are already carrying.
 
-- `CARD_ID_SALT` must be set in Vercel's environment variables, alongside
-  `SESSION_SECRET`. Without it, adding a member fails with a clear message
-  rather than minting a guessable ID.
-- Treat it as permanent. Changing it won't alter already-issued cards
-  (their IDs are stored in the database), but new cards would be minted
-  from a different secret than the old ones.
+**Importing.** The primary action on the page is a CSV upload (drop a file
+on the zone, or click to browse). The file needs the columns `name`,
+`email`, `hex_id`, `mint_number`, `issued_at` — matched by header *name*, so
+their order in the file doesn't matter.
 
-Because the ID is derived from name and email, adding the same person twice
-is rejected as a duplicate. Editing a member changes their name/email but
-deliberately **keeps** their existing `hex_id` and `mint_number` — the card
-may already be printed or shared, so its identity has to stay stable.
+- Rows are matched on **email**: an address already in the table updates
+  that member, a new one inserts. Re-running the same export is therefore
+  safe — it updates everyone rather than creating a second card each time.
+  Matching ignores capitalisation, so `Ada@…` won't slip past `ada@…`.
+- `hex_id`, `mint_number` and `issued_at` are taken from the file verbatim.
+- The whole file is validated **before anything is written**, and a bad file
+  is rejected in full with the offending line numbers. A half-applied import
+  would leave the card data in a state nobody could reason about. The writes
+  themselves run in one transaction, so a failure part-way rolls back.
+- After a successful import the page reports how many rows were added versus
+  updated.
 
-**Export CSV** downloads `name,email,hex_id,mint_number,issued_at`. That
-column order is a contract with the offline card-image generator — don't
-reorder or insert columns without updating that script too. Values are
-RFC 4180 escaped, so a comma or quote in a name won't shift the columns.
+**Fixing one entry.** The secondary "Fix one entry" button is the manual
+escape hatch for patching a single row. `hex_id` and `mint_number` are plain
+editable text fields there — for correcting an entry, not for creating new
+identities. (The issue date isn't editable by hand; fix that by re-importing
+the row.)
 
 **Public verification** lives at `/id/<hexId>` — no login, that's the point.
 It's rendered server-side by `api/id.js` (reached via the rewrite in

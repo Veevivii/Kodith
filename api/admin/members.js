@@ -7,9 +7,44 @@
 // requireAuth() and nothing in this file is ever exposed publicly. The
 // public verification page reads the members table separately, and returns
 // only name / year / mint number — never email.
+//
+// Bulk loading happens in members-import.js. What is left here is the
+// single-row escape hatch: fixing one entry by hand. hex_id and mint_number
+// are therefore taken exactly as typed and never generated — the offline
+// card script mints those, and the site must not invent an identity that
+// disagrees with a card someone is already carrying.
 import { sql } from "../_lib/db.js";
 import { requireAuth } from "../_lib/require-auth.js";
-import { generateHexId } from "../_lib/card-id.js";
+
+const HEX_RE = /^[0-9A-Fa-f]{8}$/;
+
+/**
+ * Validates the four fields an admin can type. Returns an error string, or
+ * null when the values are usable.
+ */
+function validate({ name, email, hex_id, mint_number }) {
+  if (!name || !String(name).trim()) return "Name is required.";
+  if (!email || !String(email).trim()) return "Email is required.";
+  if (String(email).indexOf("@") === -1) return "That doesn't look like an email address.";
+
+  const hex = String(hex_id == null ? "" : hex_id).trim();
+  if (!HEX_RE.test(hex)) return "Card ID must be exactly 8 hex characters (0-9, A-F).";
+
+  const mintRaw = String(mint_number == null ? "" : mint_number).trim();
+  if (!/^\d+$/.test(mintRaw) || Number(mintRaw) < 1) return "Mint number must be a positive whole number.";
+
+  return null;
+}
+
+/** Field values, normalised the same way for both insert and update. */
+function normalise({ name, email, hex_id, mint_number }) {
+  return {
+    name: String(name).trim(),
+    email: String(email).trim(),
+    hexId: String(hex_id).trim().toUpperCase(),
+    mint: Number(String(mint_number).trim()),
+  };
+}
 
 export default async function handler(request, response) {
   const session = await requireAuth(request, response);
@@ -28,33 +63,13 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "POST") {
-      const { name, email } = request.body || {};
-      if (!name || !email) {
-        response.status(400).json({ error: "name and email are required" });
-        return;
-      }
+      const invalid = validate(request.body || {});
+      if (invalid) { response.status(400).json({ error: invalid }); return; }
+      const v = normalise(request.body);
 
-      let hexId;
-      try {
-        hexId = generateHexId(name, email);
-      } catch (err) {
-        // Missing salt is a deployment problem, not a bad request — say so
-        // plainly rather than surfacing it as a generic 500.
-        console.error("api/admin/members: cannot generate hex id:", err);
-        response.status(500).json({ error: "CARD_ID_SALT is not configured on the server" });
-        return;
-      }
-
-      // mint_number is computed inside the INSERT so two admins adding at
-      // the same moment can't both read the same MAX() and collide.
       const [row] = await sql`
         INSERT INTO members (name, email, hex_id, mint_number)
-        VALUES (
-          ${String(name).trim()},
-          ${String(email).trim()},
-          ${hexId},
-          (SELECT COALESCE(MAX(mint_number), 0) + 1 FROM members)
-        )
+        VALUES (${v.name}, ${v.email}, ${v.hexId}, ${v.mint})
         RETURNING id, name, email, hex_id, mint_number,
                   to_char(issued_at, 'YYYY-MM-DD') AS issued_at
       `;
@@ -69,17 +84,14 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "PATCH") {
-      const { name, email } = request.body || {};
-      if (!name || !email) {
-        response.status(400).json({ error: "name and email are required" });
-        return;
-      }
-      // hex_id and mint_number are deliberately NOT recomputed on edit: the
-      // card has already been issued and may be printed or shared, so its
-      // identity has to stay stable even if a typo in the name is fixed.
+      const invalid = validate(request.body || {});
+      if (invalid) { response.status(400).json({ error: invalid }); return; }
+      const v = normalise(request.body);
+
       const [row] = await sql`
         UPDATE members
-        SET name=${String(name).trim()}, email=${String(email).trim()}, updated_at=now()
+        SET name=${v.name}, email=${v.email}, hex_id=${v.hexId},
+            mint_number=${v.mint}, updated_at=now()
         WHERE id=${id}
         RETURNING id, name, email, hex_id, mint_number,
                   to_char(issued_at, 'YYYY-MM-DD') AS issued_at
@@ -98,12 +110,17 @@ export default async function handler(request, response) {
 
     response.status(405).json({ error: "Method not allowed" });
   } catch (err) {
-    // A duplicate is the one error an admin can actually act on, so name it
-    // rather than reporting a generic failure.
+    // Every unique column here means something different to an admin, so
+    // name the one that actually collided rather than reporting a generic
+    // duplicate they then have to go hunting for.
     if (err && err.code === "23505") {
-      response.status(409).json({
-        error: "That name and email already has a card — the ID is derived from them, so it would be a duplicate.",
-      });
+      const c = String(err.constraint || "");
+      const message =
+        c.indexOf("email") !== -1 ? "Another member already has that email address."
+        : c.indexOf("hex_id") !== -1 ? "Another member already has that card ID."
+        : c.indexOf("mint") !== -1 ? "Another member already has that mint number."
+        : "That would duplicate an existing member.";
+      response.status(409).json({ error: message });
       return;
     }
     console.error("api/admin/members failed:", err);

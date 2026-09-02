@@ -55,10 +55,25 @@
     <section class="admin-panel" aria-labelledby="h-cards">
       <div class="admin-panel__head">
         <h2 id="h-cards">Member cards</h2>
-        <div class="admin-panel__actions">
-          <a class="btn btn--ghost admin-panel__add" id="exportBtn" href="/api/admin/members-export">Export CSV</a>
-          <button type="button" class="btn btn--ghost admin-panel__add" id="addBtn">+ Add member</button>
-        </div>
+      </div>
+
+      <!-- Primary action. Members arrive as a CSV from the offline card
+           script, which is the only thing that mints hex_id / mint_number —
+           this page imports what that script produced, it never invents an
+           identity of its own. The button doubles as the drop target so it
+           is reachable by keyboard, not mouse-only. -->
+      <button type="button" class="admin-drop" id="dropZone">
+        <span class="admin-drop__title">Drop the members CSV here, or click to choose a file</span>
+        <span class="admin-drop__hint">Columns: name, email, hex_id, mint_number, issued_at</span>
+        <span class="admin-drop__hint">Members are matched by email — existing entries are updated, new ones added.</span>
+      </button>
+      <input type="file" id="csvInput" accept=".csv,text/csv" hidden>
+
+      <div class="admin-import-result" id="importResult" hidden></div>
+
+      <!-- Secondary: the escape hatch for patching a single row. -->
+      <div class="admin-panel__actions admin-panel__actions--minor">
+        <button type="button" class="btn btn--ghost admin-panel__add" id="addBtn">Fix one entry</button>
       </div>
 
       <div class="admin-form" id="form-members" hidden></div>

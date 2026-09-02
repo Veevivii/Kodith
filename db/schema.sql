@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS members (
 );
 CREATE INDEX IF NOT EXISTS members_hex_id_idx ON members (hex_id);
 
+-- Email is the key the CSV import matches on: a row whose email already
+-- exists is updated rather than inserted again, which is what stops an
+-- import creating duplicate people. Indexed on lower(email) so a change of
+-- capitalisation can't slip a second card past that check, while the
+-- address itself is still stored exactly as the source file wrote it.
+CREATE UNIQUE INDEX IF NOT EXISTS members_email_lower_idx ON members (lower(email));
+
 -- "team" is a reserved-enough word to cause confusion against the frontend's
 -- `team` key in the /api/data response — table is team_members, JSON key stays `team`.
 CREATE TABLE IF NOT EXISTS team_members (

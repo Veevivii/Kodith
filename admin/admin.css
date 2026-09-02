@@ -237,6 +237,72 @@
   font-size: 0.875rem;
 }
 
+/* ---- CSV import ---------------------------------------------------------
+   The drop zone is a real <button> rather than a styled <div>: it is the
+   page's primary action, so it has to be reachable and operable by keyboard,
+   and a button gets that (focus, Enter/Space, a role) without reimplementing
+   any of it. */
+.admin-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 34px 24px;
+  margin-bottom: 16px;
+  text-align: center;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.admin-drop:hover:not(:disabled),
+.admin-drop.is-over {
+  border-color: var(--accent-warm);
+  background: var(--surface-2, var(--surface));
+}
+.admin-drop.is-over { border-style: solid; }
+.admin-drop:disabled { opacity: 0.6; cursor: default; }
+.admin-drop__title { font-size: 0.9375rem; }
+.admin-drop__hint {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.admin-import-result {
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--hairline);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.admin-import-result.is-ok { border-left-color: var(--accent-signal); }
+.admin-import-result.is-error { border-left-color: var(--accent-warm); }
+.admin-import-result.is-busy { border-left-color: var(--text-muted); }
+.admin-import-result__head { font-size: 0.9375rem; }
+.admin-import-result__list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: var(--text-muted);
+  /* A badly wrong file can produce a long list; cap it so the table below
+     stays reachable without a lot of scrolling. */
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* Manual single-row entry is the secondary path now, so it sits quietly
+   under the import rather than competing with it. */
+.admin-panel__actions--minor { justify-content: flex-end; margin-bottom: 12px; }
+
 /* ---- Members table ------------------------------------------------------
    The cards page shows five columns, which is wider than the content panels
    — hence admin-main--wide and the horizontal scroll wrapper for narrow
