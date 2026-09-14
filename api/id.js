@@ -9,8 +9,8 @@
 //   3. it means there is no public members endpoint to enumerate — the only
 //      way to learn anything is to already hold a specific valid ID.
 //
-// Only name, year and mint number are ever rendered. Email is deliberately
-// never exposed here.
+// Only name, member-since date and mint number are ever rendered. Email is
+// deliberately never exposed here.
 import { sql } from "./_lib/db.js";
 import { normalizeHexId } from "./_lib/card-id.js";
 
@@ -73,6 +73,14 @@ function page({ title, body, status }) {
     letter-spacing: -0.02em;
     line-height: 1.15;
   }
+  /* Reads as one sentence with the name above it, so the page states the
+     claim in full rather than leaving it implied by a status label. */
+  .idp__claim {
+    margin-top: 10px;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
   .idp__meta {
     margin-top: 24px;
     padding-top: 20px;
@@ -110,7 +118,7 @@ function page({ title, body, status }) {
 <body>
 <main class="idp">
   <div class="idp__card">
-    <p class="idp__mark">Kodith</p>
+    <p class="idp__mark">Kōdith</p>
 ${body}
     <a class="idp__back" href="/">kodith.vercel.app</a>
   </div>
@@ -119,14 +127,30 @@ ${body}
 </html>`;
 }
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** "2026-09-12" -> "12 September 2026". Built from the string's parts rather
+ *  than a Date object, so no timezone can nudge the day, and the month is
+ *  spelled out so it can't be misread as 09/12 versus 12/09. Returns "" for
+ *  anything that isn't a well-formed date, and the sentence then simply ends
+ *  without "since". */
+function formatSince(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!match) return "";
+  const month = MONTHS[Number(match[2]) - 1];
+  if (!month) return "";
+  return `${Number(match[3])} ${month} ${match[1]}`;
+}
+
 function foundBody(member) {
-  return `    <p class="idp__status idp__status--ok">✦ verified kodith member</p>
+  const since = formatSince(member.since);
+  return `    <p class="idp__status idp__status--ok">✦ verified</p>
     <p class="idp__name">${esc(member.name)}</p>
+    <p class="idp__claim">is a verified member of the Kōdith Community${since ? ` since ${esc(since)}` : ""}.</p>
     <dl class="idp__meta">
-      <div>
-        <dt>member since</dt>
-        <dd>${esc(member.year)}</dd>
-      </div>
       <div>
         <dt>mint</dt>
         <dd>#${esc(member.mint_number)}</dd>
@@ -137,7 +161,7 @@ function foundBody(member) {
 function notFoundBody() {
   return `    <p class="idp__status idp__status--no">not verified</p>
     <p class="idp__name">Not a verified member</p>
-    <p class="idp__note">This ID doesn't match any Kodith member card. Check the
+    <p class="idp__note">This ID doesn't match any Kōdith member card. Check the
       code on the card, or get in touch if you think it should be valid.</p>`;
 }
 
@@ -153,25 +177,30 @@ export default async function handler(request, response) {
   // rather than an error page: someone scanning a card should never be
   // shown a stack trace or a raw 500.
   if (!/^[0-9A-F]{8}$/.test(hexId)) {
-    response.status(404).send(page({ title: "Not a verified member — Kodith", body: notFoundBody() }));
+    response.status(404).send(page({ title: "Not a verified member — Kōdith", body: notFoundBody() }));
     return;
   }
 
   try {
+    // issued_at is the member-since date. The import writes it as a bare date
+    // and this reads it back in the same session timezone, so the calendar day
+    // round-trips exactly — the same expression api/admin/members.js uses.
+    // Don't add AT TIME ZONE on this side alone: it would shift the day
+    // whenever the database's default zone isn't UTC.
     const [row] = await sql`
-      SELECT name, mint_number, to_char(issued_at, 'YYYY') AS year
+      SELECT name, mint_number, to_char(issued_at, 'YYYY-MM-DD') AS since
       FROM members
       WHERE hex_id = ${hexId}
     `;
     if (!row) {
-      response.status(404).send(page({ title: "Not a verified member — Kodith", body: notFoundBody() }));
+      response.status(404).send(page({ title: "Not a verified member — Kōdith", body: notFoundBody() }));
       return;
     }
-    response.status(200).send(page({ title: `${row.name} — verified Kodith member`, body: foundBody(row) }));
+    response.status(200).send(page({ title: `${row.name} — verified Kōdith member`, body: foundBody(row) }));
   } catch (err) {
     console.error("api/id failed:", err);
     // Even a database outage shows the clean card, not an error dump. 503
     // so it isn't cached or read as a permanent "this ID is fake".
-    response.status(503).send(page({ title: "Verification unavailable — Kodith", body: notFoundBody() }));
+    response.status(503).send(page({ title: "Verification unavailable — Kōdith", body: notFoundBody() }));
   }
 }
