@@ -111,7 +111,7 @@ handled gracefully: placeholder names and locations are skipped rather than
 rendered as broken links.
 
 **Already filled in:** tagline (*Just Kode it.*), founding year (2026),
-Discord (`discord.gg/SwP45GdKm5`, 3 links) and Instagram
+Discord (`discord.gg/kaYgkZYV2g`, 3 links) and Instagram
 (`instagram.com/kodith.io`, 3 links).
 
 ---
