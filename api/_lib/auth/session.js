@@ -2,7 +2,7 @@
 // UI reads `authenticated` to decide whether to show the login form or the
 // CRUD panels.
 import { getIronSession } from "iron-session";
-import { sessionOptions } from "../_lib/session.js";
+import { sessionOptions } from "../session.js";
 
 export default async function handler(request, response) {
   if (request.method !== "GET") {

@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { getIronSession } from "iron-session";
-import { sql } from "../_lib/db.js";
-import { sessionOptions } from "../_lib/session.js";
+import { sql } from "../db.js";
+import { sessionOptions } from "../session.js";
 
 // A hash of a value nobody will ever type, used to keep bcrypt.compare()'s
 // timing roughly the same whether or not the email exists — so a login

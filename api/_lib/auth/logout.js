@@ -1,5 +1,5 @@
 import { getIronSession } from "iron-session";
-import { sessionOptions } from "../_lib/session.js";
+import { sessionOptions } from "../session.js";
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {

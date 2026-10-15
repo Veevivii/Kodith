@@ -1,6 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/id/:hexId", "destination": "/api/id?hex=:hexId" }
+    {
+      "source": "/id/:hexId",
+      "destination": "/api/id?hex=:hexId"
+    },
+    {
+      "source": "/api/auth/:action",
+      "destination": "/api/auth?action=:action"
+    }
   ]
 }

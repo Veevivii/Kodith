@@ -32,7 +32,7 @@ api/cce.js            receives the /cce form (insert-only, spam-filtered)
 api/_lib/csv.js       RFC 4180 CSV parser used by the member import
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
-vercel.json           one rewrite: the pretty /id/<hexId> URL -> api/id.js
+vercel.json           rewrites: /id/<hexId> -> api/id.js, /api/auth/<action> -> api/auth.js
 ```
 
 ---
@@ -312,6 +312,23 @@ Worth knowing:
 - There are **no email notifications** for new applications yet. Check
   `/admin/cce`, or ask for notifications to be added (it would need an email
   service such as Resend).
+
+### Vercel's function limit
+
+On the Hobby plan a deployment can have **at most 12 serverless functions**,
+and every routed file under `api/` counts as one (files and folders starting
+with `_` don't). Go over and the build succeeds but the deploy fails with no
+clear error. That happened once when the CCE endpoints took the count to 13.
+
+The count is currently **11**. To stay under the limit, the three auth
+endpoints share one function: `api/auth.js` dispatches to the handlers in
+`api/_lib/auth/`, and `vercel.json` rewrites `/api/auth/login` (and
+`logout`, `session`) to it, so their URLs never changed. Before adding a new
+`api/` file, count with:
+
+```bash
+find api -name "*.js" ! -path "*/_*" | wc -l
+```
 
 ### Local development
 
