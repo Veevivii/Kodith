@@ -189,6 +189,23 @@
     });
   }
 
+  /* ------------------------------------------------------------ email */
+  /* A plain mailto: link opens the computer's default mail app, and on most
+     PCs none is set up, so clicking it does nothing useful. Links marked
+     data-mailto point at Gmail's compose window instead. On phones and
+     tablets mailto: is the better choice (it opens the Gmail or Mail app
+     with a draft), so there they switch back to it. */
+  function setupMailLinks() {
+    var touch = false;
+    try { touch = window.matchMedia("(pointer: coarse)").matches; } catch (e) {}
+    if (!touch) return;
+    document.querySelectorAll("a[data-mailto]").forEach(function (a) {
+      a.href = a.getAttribute("data-mailto");
+      a.removeAttribute("target");
+      a.removeAttribute("rel");
+    });
+  }
+
   /* --------------------------------------------------------- upcoming */
 
   function renderEvents() {
@@ -448,6 +465,8 @@
     setupFaq();
     setupReveals();   /* last — it must see the nodes the renderers just made */
   }
+
+  setupMailLinks();   /* now, not in boot(): it doesn't need the data feed */
 
   /* Live site: fetch the database-backed feed. If it's unreachable — the
      admin backend isn't running (e.g. a plain `python -m http.server`
