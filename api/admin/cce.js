@@ -17,7 +17,7 @@ export default async function handler(request, response) {
   try {
     if (request.method === "GET") {
       const rows = await sql`
-        SELECT id, name, email, phone, college, course_year, city, linkedin, about, motivation, status, notes,
+        SELECT id, name, email, phone, college, course_year, city, linkedin, about, motivation, status, notes, notify_error,
                to_char(created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS submitted
         FROM cce_applications
         ORDER BY created_at DESC

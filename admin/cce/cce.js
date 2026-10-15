@@ -22,6 +22,7 @@
   var filter = "all";
   var host = document.getElementById("apps");
   var filtersEl = document.getElementById("filters");
+  var alertEl = document.getElementById("alertStatus");
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -61,6 +62,11 @@
     head.appendChild(who);
 
     var right = el("div", "cce-app__right");
+    if (a.notify_error) {
+      var tag = el("span", "cce-app__noalert", "No email alert");
+      tag.title = a.notify_error;
+      right.appendChild(tag);
+    }
     right.appendChild(el("span", "cce-app__date", a.submitted + " IST"));
     var select = el("select", "cce-status cce-status--" + a.status);
     select.setAttribute("aria-label", "Status for " + a.name);
@@ -121,7 +127,18 @@
     return card;
   }
 
+  /* Only the newest application decides the banner: once alerts work again,
+     it goes away, while older cards keep their "No email alert" tag. */
+  function renderAlertStatus() {
+    var latest = apps[0];
+    alertEl.hidden = !(latest && latest.notify_error);
+    alertEl.textContent = alertEl.hidden ? ""
+      : "No email alert went out for the newest application. " + latest.notify_error
+        + " Setup steps are in the README, under \"CCE applications\".";
+  }
+
   function render() {
+    renderAlertStatus();
     renderFilters();
     host.innerHTML = "";
     var shown = filter === "all" ? apps : apps.filter(function (a) { return a.status === filter; });

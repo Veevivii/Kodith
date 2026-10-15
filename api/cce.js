@@ -11,8 +11,11 @@
 //     address is never stored
 // Bot submissions get the same success response as real ones, so a script
 // can't tell it was filtered and adapt.
+//
+// Every saved application also emails the team (see _lib/notify.js).
 import crypto from "node:crypto";
 import { sql } from "./_lib/db.js";
+import { notifyNewApplication } from "./_lib/notify.js";
 
 const MIN_FILL_MS = 2500;
 const RATE_LIMIT = 5;            // submissions per network per hour
@@ -98,11 +101,25 @@ export default async function handler(request, response) {
       return;
     }
 
-    await sql`
+    const [saved] = await sql`
       INSERT INTO cce_applications (name, email, phone, college, course_year, city, linkedin, about, motivation, ip_hash)
       VALUES (${v.name}, ${v.email}, ${v.phone}, ${v.college}, ${v.course_year}, ${v.city}, ${v.linkedin},
               ${v.about}, ${v.motivation}, ${ipHash})
+      RETURNING id
     `;
+
+    // Email the team. This runs before responding because Vercel can pause a
+    // function once its response is sent. The application is already saved,
+    // so a failed alert never fails it: the reason is recorded instead, and
+    // /admin/cce shows it.
+    const notifyError = await notifyNewApplication(v);
+    if (notifyError) {
+      try {
+        await sql`UPDATE cce_applications SET notify_error = ${notifyError} WHERE id = ${saved.id}`;
+      } catch (err) {
+        console.error("api/cce could not record the alert failure:", err);
+      }
+    }
     response.status(201).json({ ok: true });
   } catch (err) {
     // One application per email. Say so plainly rather than offering to

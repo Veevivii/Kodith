@@ -30,6 +30,7 @@ api/                  Vercel serverless functions: public data feed, auth, admin
 api/id.js             public card verification page, served at /id/<hexId>
 api/cce.js            receives the /cce form (insert-only, spam-filtered)
 api/_lib/csv.js       RFC 4180 CSV parser used by the member import
+api/_lib/notify.js    emails the team about each new CCE application (Resend)
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
 vercel.json           rewrites: /id/<hexId> -> api/id.js, /api/auth/<action> -> api/auth.js
@@ -309,6 +310,31 @@ Worth knowing:
 - **Email fallback:** the page also links a pre-filled email (subject plus
   prompts) to kodith.dev@gmail.com, as a `mailto:` link and as a Gmail
   compose link.
+
+#### Email alerts
+
+Every new application is emailed to kodith.dev@gmail.com with everything
+the applicant wrote, and hitting Reply writes straight back to them. It goes
+through [Resend](https://resend.com) (free plan: 3,000 emails a month, 100 a
+day), called with a plain `fetch` in `api/_lib/notify.js`, so there's no
+library to keep updated. One-time setup:
+
+1. Sign up at resend.com **with kodith.dev@gmail.com**. Without a domain of
+   our own, Resend only delivers to the address the account was made with.
+2. In Resend: **API Keys -> Create API Key**, permission **Sending access**
+   (it can send email and nothing else).
+3. In Vercel: **Project -> Settings -> Environment Variables**, add
+   `RESEND_API_KEY` with that key for Production, then redeploy (env vars
+   only reach new deployments).
+
+To send alerts somewhere else, set `NOTIFY_EMAIL`. With Resend's free setup
+it has to be the address the Resend account was created with.
+
+If an alert can't be sent (no key, a revoked key, Resend down), the
+application is still saved. `/admin/cce` tags it **No email alert** with the
+reason on hover, and shows a banner while the newest application is
+affected, so a broken alert can't go unnoticed for long. Alerts come from
+onboarding@resend.dev: if the first one lands in Spam, mark it "Not spam".
 - There are **no email notifications** for new applications yet. Check
   `/admin/cce`, or ask for notifications to be added (it would need an email
   service such as Resend).

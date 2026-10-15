@@ -102,9 +102,14 @@ CREATE TABLE IF NOT EXISTS cce_applications (
   -- salted hash of the submitter's IP, used only to rate-limit the public
   -- form. The raw address is never stored
   ip_hash      TEXT NOT NULL DEFAULT '',
+  -- why the email alert for this application didn't go out, or empty if it did
+  notify_error TEXT NOT NULL DEFAULT '',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- notify_error arrived after the table was first created, so databases made
+-- before then get it here (a no-op everywhere else)
+ALTER TABLE cce_applications ADD COLUMN IF NOT EXISTS notify_error TEXT NOT NULL DEFAULT '';
 -- One application per person, and capitalisation can't sneak a second one in.
 CREATE UNIQUE INDEX IF NOT EXISTS cce_applications_email_lower_idx ON cce_applications (lower(email));
 CREATE INDEX IF NOT EXISTS cce_applications_created_idx ON cce_applications (created_at DESC);
