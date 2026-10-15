@@ -23,9 +23,12 @@ tools/                contrast checker (developers only, see below)
 
 admin/                the dashboard UI (login + CRUD for events/projects/team)
 admin/cards/          the member e-card page (see "Member cards", below)
+admin/cce/            review Chief Campus Executive applications (see "CCE applications")
+cce/                  the public "Become CCE" application form, served at /cce
 admin/admin-shared.js login / session / logout, shared by every admin page
 api/                  Vercel serverless functions: public data feed, auth, admin CRUD
 api/id.js             public card verification page, served at /id/<hexId>
+api/cce.js            receives the /cce form (insert-only, spam-filtered)
 api/_lib/csv.js       RFC 4180 CSV parser used by the member import
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
@@ -95,15 +98,9 @@ looks fine — an empty slot beats a stretched photo.
 Copy that still needs real values is written in `[SQUARE BRACKETS]` so you can
 find and replace it.
 
-**Still outstanding:**
-
-| Placeholder | Where                  | Count |
-| ----------- | ---------------------- | ----- |
-| `[EMAIL]`   | footer, `mailto:` link | 1     |
-
-Until it's filled in, that footer link points at `mailto:[EMAIL]` and will not
-work if clicked. Either drop in a real address or delete the `<li>` on line 309
-of `index.html`.
+Nothing on the page itself is outstanding. The footer email now points at
+kodith.dev@gmail.com, the same address the CCE page offers as its email
+fallback.
 
 `site-data.js` also ships `[NAME]` and `[PROJECT NAME]` in its sample rows —
 replace those as you fill the lists in. Anything left in brackets there is
@@ -111,8 +108,8 @@ handled gracefully: placeholder names and locations are skipped rather than
 rendered as broken links.
 
 **Already filled in:** tagline (*Just Kode it.*), founding year (2026),
-Discord (`discord.gg/kaYgkZYV2g`, 3 links) and Instagram
-(`instagram.com/kodith.io`, 3 links).
+Discord (`discord.gg/kaYgkZYV2g`, 3 links), Instagram
+(`instagram.com/kodith.io`, 3 links) and email (`kodith.dev@gmail.com`).
 
 ---
 
@@ -285,6 +282,36 @@ It's rendered server-side by `api/id.js` (reached via the rewrite in
 real 404 for an unknown ID, and — importantly — there is no public members
 endpoint to enumerate. It shows name, member-since year and mint number
 only; email is never exposed publicly.
+
+### CCE applications
+
+"Become CCE" buttons (in the hero and under the Join section) lead to
+`/cce`, a short application form for Chief Campus Executives: name, email,
+college, optional phone / course / city / LinkedIn, and two short answers
+(about them, and why they want Kodith at their college). Submissions land
+in the `cce_applications` table of the same database as everything else,
+and you review them at **`/admin/cce`** behind the usual admin login: filter
+by status (new / shortlisted / contacted / rejected), keep private notes,
+or delete.
+
+Worth knowing:
+
+- **The public endpoint can only insert.** Nothing about an applicant is
+  readable without an admin session, and the admin page renders everything
+  they typed as plain text, since it comes from strangers.
+- **One application per email** (capitalisation ignored). A second attempt
+  gets a friendly "we already have your application" rather than
+  overwriting the first, so nobody can replace someone else's answers.
+- **Spam filtering without a CAPTCHA:** a hidden honeypot field, a minimum
+  fill time, and at most 5 applications per network per hour. Filtered
+  submissions get the same "thanks" as real ones so bots can't adapt. The
+  rate limit keys on a salted hash of the IP; raw IPs are never stored.
+- **Email fallback:** the page also links a pre-filled email (subject plus
+  prompts) to kodith.dev@gmail.com, as a `mailto:` link and as a Gmail
+  compose link.
+- There are **no email notifications** for new applications yet. Check
+  `/admin/cce`, or ask for notifications to be added (it would need an email
+  service such as Resend).
 
 ### Local development
 

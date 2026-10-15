@@ -433,3 +433,48 @@
   z-index: 50;
 }
 .admin-toast.is-error { border-color: rgba(var(--warm-rgb), 0.4); color: var(--accent-warm); }
+
+/* ---- CCE applications ---------------------------------------------------
+   Long free-text answers, so each application is a card rather than a table
+   row. Applicant text uses pre-wrap so their own line breaks survive. */
+.admin-panel__link {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em;
+  color: var(--text-muted); border-bottom: 1px solid var(--hairline);
+}
+.admin-panel__link:hover { color: var(--accent-signal); }
+.cce-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.cce-filter {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.03em;
+  color: var(--text-muted); background: transparent;
+  border: 1px solid var(--hairline); border-radius: 999px; padding: 0.45em 0.95em; cursor: pointer;
+}
+.cce-filter:hover { color: var(--text); }
+.cce-filter.is-current { color: var(--bg); background: var(--text); border-color: var(--text); }
+.cce-app {
+  background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
+  padding: 20px 22px; margin-bottom: 14px;
+}
+.cce-app__head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.cce-app__name { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
+.cce-app__sub { color: var(--text-muted); font-size: 0.875rem; margin-top: 2px; }
+.cce-app__right { display: flex; align-items: center; gap: 12px; }
+.cce-app__date { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.cce-status {
+  font: inherit; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text);
+  background: var(--bg); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 6px 8px;
+}
+.cce-status--new { border-color: rgba(var(--warm-rgb), 0.6); }
+.cce-status--shortlisted { border-color: rgba(var(--signal-rgb), 0.6); }
+.cce-app__contact { margin-top: 12px; font-family: var(--font-mono); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.cce-app__contact a { color: var(--text); border-bottom: 1px solid var(--hairline); }
+.cce-app__contact a:hover { color: var(--accent-signal); }
+.cce-dot { color: var(--hairline); }
+.cce-app__block { margin-top: 16px; }
+.cce-app__label { display: block; font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.cce-app__text { white-space: pre-wrap; line-height: 1.55; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.cce-app__notes { margin-top: 16px; }
+.cce-app__notesInput {
+  width: 100%; font: inherit; font-size: 0.875rem; color: var(--text); background: var(--bg);
+  border: 1px solid var(--hairline); border-radius: var(--radius); padding: 10px 12px; resize: vertical;
+}
+.cce-app__actions { margin-top: 12px; }

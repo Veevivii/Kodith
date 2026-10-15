@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Become a Chief Campus Executive — Kodith</title>
+<meta name="description" content="Kodith is expanding to other colleges. Apply to become a Chief Campus Executive and bring Kodith to your campus.">
+<meta name="theme-color" content="#0B0E14">
+<meta property="og:title" content="Become a Chief Campus Executive — Kodith">
+<meta property="og:description" content="Kodith is expanding to other colleges. Apply to bring Kodith to your campus.">
+<meta property="og:type" content="website">
+<!-- Root-relative paths: this page is served at /cce with no trailing slash. -->
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/cce/cce.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z' fill='%23FF8A4C'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="cce-top">
+  <div class="wrap cce-top__inner">
+    <a class="nav__mark" href="/" aria-label="Kodith — home">Kodith</a>
+    <a class="cce-top__back" href="/">Back to the site</a>
+  </div>
+</header>
+
+<main id="main" class="cce">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow">Chief Campus Executive</p>
+    <h1 class="cce__h">Bring Kodith to your&nbsp;college.</h1>
+    <p class="lede">
+      Kodith is a student-run CS &amp; IoT community from Indore, and we're expanding to
+      other colleges. We're looking for Chief Campus Executives: students who want to bring
+      Kodith to their own campus.
+    </p>
+    <p class="lede lede--sub">Tell us a little about yourself and we'll get back to you on the email you give us.</p>
+
+    <form class="cce-form" id="cceForm" novalidate>
+      <div class="cce-form__error" id="formError" role="alert" tabindex="-1" hidden></div>
+      <div class="cce-grid">
+        <div class="cce-field">
+          <label for="f-name">Name</label>
+          <input id="f-name" name="name" required maxlength="100" type="text" autocomplete="name" placeholder="">
+          
+        </div>
+        <div class="cce-field">
+          <label for="f-email">Email</label>
+          <input id="f-email" name="email" required aria-describedby="email-hint" maxlength="200" type="email" autocomplete="email" placeholder="">
+          <span class="cce-hint" id="email-hint">We'll reply here.</span>
+        </div>
+        <div class="cce-field">
+          <label for="f-phone">Phone / WhatsApp <span class="cce-opt">optional</span></label>
+          <input id="f-phone" name="phone" maxlength="30" type="tel" autocomplete="tel" placeholder="">
+          
+        </div>
+        <div class="cce-field">
+          <label for="f-college">College</label>
+          <input id="f-college" name="college" required maxlength="150" type="text" autocomplete="organization" placeholder="">
+          
+        </div>
+        <div class="cce-field">
+          <label for="f-course_year">Course and year <span class="cce-opt">optional</span></label>
+          <input id="f-course_year" name="course_year" maxlength="100" type="text" placeholder="e.g. B.Tech CSE, 2nd year">
+          
+        </div>
+        <div class="cce-field">
+          <label for="f-city">City <span class="cce-opt">optional</span></label>
+          <input id="f-city" name="city" maxlength="80" type="text" autocomplete="address-level2" placeholder="">
+          
+        </div>
+        <div class="cce-field cce-field--wide">
+          <label for="f-linkedin">LinkedIn <span class="cce-opt">optional</span></label>
+          <input id="f-linkedin" name="linkedin" maxlength="300" type="url" placeholder="linkedin.com/in/your-profile">
+          
+        </div>
+        <div class="cce-field cce-field--wide">
+          <label for="f-about">About you</label>
+          <textarea id="f-about" name="about" required aria-describedby="about-hint" maxlength="2000" data-min="30" rows="5" placeholder=""></textarea><span class="cce-count" data-for="about" aria-hidden="true"></span>
+          <span class="cce-hint" id="about-hint">What you study, what you've built or want to build, anything you're proud of.</span>
+        </div>
+        <div class="cce-field cce-field--wide">
+          <label for="f-motivation">Why do you want to bring Kodith to your college?</label>
+          <textarea id="f-motivation" name="motivation" required maxlength="2000" data-min="30" rows="5" placeholder=""></textarea><span class="cce-count" data-for="motivation" aria-hidden="true"></span>
+          
+        </div>
+      </div>
+
+      <!-- Honeypot: hidden from people and screen readers, irresistible to bots. -->
+      <div class="cce-hp" aria-hidden="true">
+        <label for="f-website">Website</label>
+        <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <label class="cce-consent">
+        <input type="checkbox" id="f-consent" name="consent" required>
+        <span>Kodith can contact me about the Chief Campus Executive role.</span>
+      </label>
+
+      <div class="cce-actions">
+        <button type="submit" class="btn btn--primary" id="submitBtn">Send application</button>
+      </div>
+      <p class="cce-privacy">We only use these details to get in touch with you about this role.</p>
+    </form>
+
+    <div class="cce-done" id="done" tabindex="-1" hidden>
+      <p class="eyebrow">Application sent</p>
+      <h2 class="h2">Thanks, we've got it.</h2>
+      <p class="lede">We'll get back to you on the email you gave us. Meanwhile, the community lives on Discord.</p>
+      <div class="joinrow">
+        <a class="btn btn--primary" href="https://discord.gg/kaYgkZYV2g" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+        <a class="btn btn--ghost" href="/">Back to Kodith</a>
+      </div>
+    </div>
+
+    <p class="cce-alt" id="alt">
+      Prefer email? Write to <a href="mailto:kodith.dev@gmail.com?subject=Chief%20Campus%20Executive%20application&amp;body=Hi%20Kodith%2C%0A%0AI%27d%20like%20to%20become%20a%20Chief%20Campus%20Executive.%0A%0AName%3A%0ACollege%3A%0ACourse%20and%20year%3A%0ACity%3A%0APhone%20/%20WhatsApp%3A%0ALinkedIn%3A%0A%0AAbout%20me%3A%0A%0A%0AWhy%20I%20want%20to%20bring%20Kodith%20to%20my%20college%3A%0A%0A">kodith.dev@gmail.com</a>,
+      or <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=kodith.dev%40gmail.com&amp;su=Chief%20Campus%20Executive%20application&amp;body=Hi%20Kodith%2C%0A%0AI%27d%20like%20to%20become%20a%20Chief%20Campus%20Executive.%0A%0AName%3A%0ACollege%3A%0ACourse%20and%20year%3A%0ACity%3A%0APhone%20/%20WhatsApp%3A%0ALinkedIn%3A%0A%0AAbout%20me%3A%0A%0A%0AWhy%20I%20want%20to%20bring%20Kodith%20to%20my%20college%3A%0A%0A" target="_blank" rel="noopener noreferrer">open a ready-made email in Gmail</a>.
+    </p>
+  </div>
+</main>
+
+<script src="/cce/cce.js" defer></script>
+</body>
+</html>

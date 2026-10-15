@@ -1,3 +1,5 @@
+-- NOTE: scripts/migrate.mjs splits this file at every semicolon character, so
+-- never put one inside a comment here (it would cut a statement in half).
 -- Kodith database schema.
 -- Apply with: npm run db:migrate  (uses DATABASE_URL_UNPOOLED — DDL should
 -- not run through the pooled connection).
@@ -79,3 +81,30 @@ CREATE TABLE IF NOT EXISTS team_members (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Chief Campus Executive applications, submitted through the public form at
+-- /cce and reviewed at /admin/cce. Holds applicants' personal details, so it
+-- is only ever read through the session-gated admin API. The public endpoint
+-- can insert but never list.
+CREATE TABLE IF NOT EXISTS cce_applications (
+  id           SERIAL PRIMARY KEY,
+  name         TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  phone        TEXT NOT NULL DEFAULT '',
+  college      TEXT NOT NULL,
+  course_year  TEXT NOT NULL DEFAULT '',
+  city         TEXT NOT NULL DEFAULT '',
+  linkedin     TEXT NOT NULL DEFAULT '',
+  about        TEXT NOT NULL,
+  motivation   TEXT NOT NULL,
+  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'shortlisted', 'contacted', 'rejected')),
+  notes        TEXT NOT NULL DEFAULT '',
+  -- salted hash of the submitter's IP, used only to rate-limit the public
+  -- form. The raw address is never stored
+  ip_hash      TEXT NOT NULL DEFAULT '',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- One application per person, and capitalisation can't sneak a second one in.
+CREATE UNIQUE INDEX IF NOT EXISTS cce_applications_email_lower_idx ON cce_applications (lower(email));
+CREATE INDEX IF NOT EXISTS cce_applications_created_idx ON cce_applications (created_at DESC);

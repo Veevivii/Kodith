@@ -434,7 +434,7 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
   text-wrap: balance;
 }
 
-.hero__cta { margin-top: 32px; display: flex; align-items: center; gap: 14px; }
+.hero__cta { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 
 /* Stacked label/value pairs, borrowed from the posters and repurposed
    for identity rather than event logistics. */
@@ -732,6 +732,20 @@ section[id] { scroll-margin-top: calc(var(--nav-h) + 24px); }
   margin-top: 28px;
 }
 .joinrow--center { justify-content: center; }
+
+/* "Become CCE" — a second, quieter call to action under the join buttons,
+   aimed at people from other colleges rather than new members. */
+.cce-callout {
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+.cce-callout__text { color: var(--text-muted); max-width: 44ch; line-height: 1.55; }
 
 .ticks {
   display: flex;

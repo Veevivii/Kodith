@@ -1,0 +1,81 @@
+/* ==========================================================================
+   /cce — Chief Campus Executive application.
+   Builds on css/styles.css (tokens, fonts, .wrap, .eyebrow, .lede, .btn);
+   only the form and page frame live here.
+   ========================================================================== */
+
+.cce-top { border-bottom: 1px solid var(--hairline); }
+.cce-top__inner { height: var(--nav-h); display: flex; align-items: center; justify-content: space-between; }
+.cce-top__back {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em;
+  color: var(--text-muted); border-bottom: 1px solid var(--hairline);
+}
+.cce-top__back:hover { color: var(--accent-signal); }
+
+.cce { padding: 56px 0 96px; }
+.cce__h {
+  font-family: var(--font-body); font-weight: 600;
+  font-size: clamp(2rem, 7vw, 3.25rem); line-height: 1.05; letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+.cce .lede + .lede { margin-top: 14px; }
+
+.cce-form { margin-top: 40px; }
+.cce-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 600px) {
+  .cce-grid { grid-template-columns: 1fr 1fr; gap: 20px 18px; }
+  .cce-field--wide { grid-column: 1 / -1; }
+}
+
+.cce-field { display: flex; flex-direction: column; gap: 7px; position: relative; }
+.cce-field label {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; color: var(--text);
+}
+.cce-opt { color: var(--text-muted); margin-left: 6px; }
+.cce-field input,
+.cce-field textarea {
+  width: 100%;
+  font: inherit; font-size: 1rem; color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.cce-field textarea { resize: vertical; min-height: 132px; line-height: 1.5; }
+.cce-field input::placeholder, .cce-field textarea::placeholder { color: rgba(169, 166, 156, 0.6); }
+.cce-field input:focus-visible, .cce-field textarea:focus-visible {
+  outline: 2px solid var(--accent-signal); outline-offset: 2px; border-color: transparent;
+}
+.cce-field [aria-invalid="true"] { border-color: var(--accent-warm); }
+.cce-hint { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.45; }
+.cce-count {
+  position: absolute; right: 10px; bottom: 8px;
+  font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text-muted); pointer-events: none;
+}
+.cce-field:has(.cce-hint) .cce-count { bottom: calc(8px + 1.45em + 7px); }
+.cce-count.is-ok { color: var(--accent-signal); }
+
+/* Off-screen, not display:none: some bots skip fields that are display:none. */
+.cce-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.cce-consent { display: flex; gap: 12px; align-items: flex-start; margin-top: 26px; cursor: pointer; line-height: 1.5; }
+.cce-consent input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent-warm); flex: none; }
+.cce-consent input:focus-visible { outline: 2px solid var(--accent-signal); outline-offset: 2px; }
+
+.cce-actions { margin-top: 28px; }
+.cce-actions .btn[disabled] { opacity: 0.6; cursor: progress; }
+.cce-privacy { margin-top: 14px; font-size: 0.8125rem; color: var(--text-muted); }
+
+.cce-form__error {
+  margin-bottom: 22px; padding: 14px 16px;
+  border: 1px solid rgba(var(--warm-rgb), 0.5); border-left-width: 3px; border-radius: var(--radius);
+  background: rgba(var(--warm-rgb), 0.07); color: var(--text); line-height: 1.5;
+}
+.cce-form__error:focus { outline: none; }
+
+.cce-done { margin-top: 40px; padding: 32px 28px; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); }
+.cce-done:focus { outline: none; }
+.cce-done .h2 { margin-bottom: 12px; }
+
+.cce-alt { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--hairline); color: var(--text-muted); font-size: 0.9375rem; line-height: 1.6; }
+.cce-alt a { color: var(--text); border-bottom: 1px solid var(--hairline); }
+.cce-alt a:hover { color: var(--accent-signal); border-bottom-color: var(--accent-signal); }
