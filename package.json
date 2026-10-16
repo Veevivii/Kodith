@@ -7,7 +7,8 @@
     "dev": "vercel dev",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed-content": "node scripts/seed-content.mjs",
-    "db:seed-admin": "node scripts/seed-admin.mjs"
+    "db:seed-admin": "node scripts/seed-admin.mjs",
+    "db:import-colleges": "node scripts/import-colleges.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

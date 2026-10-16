@@ -29,7 +29,8 @@ function details(app) {
   return [
     ["Email", app.email],
     ["Phone / WhatsApp", app.phone],
-    ["College", app.college],
+    // picked from the AISHE list: where it is. Typed by hand: say so, since it won't group with the rest yet.
+    ["College", app.college_id ? [app.college, app.college_place].filter(Boolean).join(", ") : app.college + " (typed, not in the AISHE list)"],
     ["Course and year", app.course_year],
     ["City", app.city],
     ["LinkedIn", app.linkedin],

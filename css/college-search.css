@@ -1,0 +1,19 @@
+/* College picker (js/college-search.js), on /cce and /admin/cce. Uses the site's tokens. */
+.cs-wrap { position: relative; }
+.cs-list {
+  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 6px);
+  max-height: min(330px, 60vh); overflow-y: auto; overscroll-behavior: contain;
+  margin: 0; padding: 6px; list-style: none;
+  background: var(--surface); border: 1px solid rgba(var(--warm-rgb), 0.35); border-radius: 6px;
+  box-shadow: 0 18px 50px rgba(var(--bg-rgb), 0.85);
+}
+.cs-opt {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  min-height: 52px; padding: 8px 12px; border-radius: 4px; cursor: pointer;
+}
+.cs-opt[aria-selected="true"], .cs-opt:hover { background: rgba(var(--warm-rgb), 0.12); }
+.cs-name { color: var(--text); font-size: 0.9375rem; line-height: 1.35; overflow-wrap: anywhere; }
+.cs-meta { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.03em; line-height: 1.4; }
+.cs-opt--unlisted { border-top: 1px solid var(--hairline); margin-top: 4px; padding-top: 10px; }
+.cs-opt--unlisted .cs-name { color: var(--accent-warm); }
+.cs-note { padding: 12px; color: var(--text-muted); font-size: 0.875rem; }

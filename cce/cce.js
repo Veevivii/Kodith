@@ -33,6 +33,28 @@
 
   function value(name) { var el = form.elements[name]; return el ? el.value.trim() : ""; }
 
+  /* ---- college: picked from the AISHE list, or explicitly "not listed" ---- */
+  var collegeId = document.getElementById("f-college_id");
+  var collegePicked = document.getElementById("college-picked");
+  var collegeUnlisted = false;
+  function showCollegeState(text) {
+    collegePicked.textContent = text || "";
+    collegePicked.hidden = !text;
+  }
+  window.KodithCollegeSearch.attach(document.getElementById("f-college"), {
+    listbox: document.getElementById("college-list"),
+    allowUnlisted: true,
+    onPick: function (c) {
+      collegeId.value = String(c.id); collegeUnlisted = false;
+      showCollegeState("✓ From the official list · " + [c.district, c.state].filter(Boolean).join(", "));
+    },
+    onUnlisted: function () {
+      collegeId.value = ""; collegeUnlisted = true;
+      showCollegeState("Not in the list, so we'll use the name as you typed it.");
+    },
+    onEdit: function () { collegeId.value = ""; collegeUnlisted = false; showCollegeState(""); },
+  });
+
   function showError(message, fieldNames) {
     errorBox.textContent = message;
     errorBox.hidden = false;
@@ -56,6 +78,7 @@
     need("email", "Email");
     if (value("email") && !EMAIL_RE.test(value("email"))) { bad.push("email"); msgs.push("That email address doesn't look right."); }
     need("college", "College", 2);
+    if (value("college") && !collegeId.value && !collegeUnlisted) { bad.push("college"); msgs.push("Pick your college from the list, or choose “My college isn't listed”."); }
     need("about", "About you", 30);
     need("motivation", "Why you want to bring Kodith to your college", 30);
     if (!document.getElementById("f-consent").checked) { bad.push("consent"); msgs.push("Please confirm we can contact you about the role."); }
@@ -75,6 +98,7 @@
 
     var payload = {
       name: value("name"), email: value("email"), phone: value("phone"), college: value("college"),
+      college_id: collegeId.value ? Number(collegeId.value) : null, college_unlisted: collegeUnlisted,
       course_year: value("course_year"), city: value("city"), linkedin: value("linkedin"),
       about: value("about"), motivation: value("motivation"),
       consent: document.getElementById("f-consent").checked,

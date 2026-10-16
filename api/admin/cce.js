@@ -16,11 +16,17 @@ export default async function handler(request, response) {
 
   try {
     if (request.method === "GET") {
+      // college = what the applicant chose or typed. college_name/district/state
+      // = the AISHE college it's linked to, if any (picked on the form, or
+      // linked here later), which is what the by-college filter groups on.
       const rows = await sql`
-        SELECT id, name, email, phone, college, course_year, city, linkedin, about, motivation, status, notes, notify_error,
-               to_char(created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS submitted
-        FROM cce_applications
-        ORDER BY created_at DESC
+        SELECT a.id, a.name, a.email, a.phone, a.college, a.college_id,
+               c.name AS college_name, c.district AS college_district, c.state AS college_state,
+               a.course_year, a.city, a.linkedin, a.about, a.motivation, a.status, a.notes, a.notify_error,
+               to_char(a.created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS submitted
+        FROM cce_applications a
+        LEFT JOIN colleges c ON c.id = a.college_id
+        ORDER BY a.created_at DESC
       `;
       response.status(200).json(rows);
       return;
@@ -33,7 +39,17 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "PATCH") {
-      const { status, notes } = request.body || {};
+      const body = request.body || {};
+      const { status, notes } = body;
+      // college_id only changes when the key is sent: a number links (or
+      // re-links) the application to that college, null unlinks it.
+      const setCollege = Object.prototype.hasOwnProperty.call(body, "college_id");
+      let collegeId = null;
+      if (setCollege && body.college_id !== null) {
+        collegeId = Number(body.college_id);
+        const [c] = Number.isInteger(collegeId) && collegeId > 0 ? await sql`SELECT id FROM colleges WHERE id = ${collegeId}` : [];
+        if (!c) { response.status(400).json({ error: "Unknown college" }); return; }
+      }
       if (status !== undefined && !STATUSES.includes(status)) {
         response.status(400).json({ error: "Unknown status" });
         return;
@@ -45,12 +61,17 @@ export default async function handler(request, response) {
       const nextStatus = status === undefined ? null : status;
       const nextNotes = notes === undefined ? null : String(notes);
       const [row] = await sql`
-        UPDATE cce_applications
-        SET status = COALESCE(${nextStatus}::text, status),
-            notes = COALESCE(${nextNotes}::text, notes),
-            updated_at = now()
-        WHERE id = ${id}
-        RETURNING id, status, notes
+        WITH u AS (
+          UPDATE cce_applications
+          SET status = COALESCE(${nextStatus}::text, status),
+              notes = COALESCE(${nextNotes}::text, notes),
+              college_id = CASE WHEN ${setCollege} THEN ${collegeId}::int ELSE college_id END,
+              updated_at = now()
+          WHERE id = ${id}
+          RETURNING id, status, notes, college_id
+        )
+        SELECT u.*, c.name AS college_name, c.district AS college_district, c.state AS college_state
+        FROM u LEFT JOIN colleges c ON c.id = u.college_id
       `;
       if (!row) { response.status(404).json({ error: "Not found" }); return; }
       response.status(200).json(row);

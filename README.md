@@ -31,6 +31,9 @@ api/id.js             public card verification page, served at /id/<hexId>
 api/cce.js            receives the /cce form (insert-only, spam-filtered)
 api/_lib/csv.js       RFC 4180 CSV parser used by the member import
 api/_lib/notify.js    emails the team about each new CCE application (Resend)
+api/_lib/colleges.js  college search for the CCE form (AISHE list, see "College picker")
+js/college-search.js  the college picker, shared by /cce and /admin/cce
+db/colleges.csv.gz    the AISHE college list, loaded by scripts/import-colleges.mjs
 db/schema.sql         the Postgres schema
 scripts/              one-off setup scripts (migrate, seed content, seed an admin login)
 vercel.json           rewrites: /id/<hexId> -> api/id.js, /api/auth/<action> -> api/auth.js
@@ -292,8 +295,8 @@ college, optional phone / course / city / LinkedIn, and two short answers
 (about them, and why they want Kodith at their college). Submissions land
 in the `cce_applications` table of the same database as everything else,
 and you review them at **`/admin/cce`** behind the usual admin login: filter
-by status (new / shortlisted / contacted / accepted / rejected), keep private notes,
-or delete.
+by status (new / shortlisted / contacted / accepted / rejected) and by college,
+keep private notes, or delete.
 
 Worth knowing:
 
@@ -335,9 +338,46 @@ application is still saved. `/admin/cce` tags it **No email alert** with the
 reason on hover, and shows a banner while the newest application is
 affected, so a broken alert can't go unnoticed for long. Alerts come from
 onboarding@resend.dev: if the first one lands in Spam, mark it "Not spam".
-- There are **no email notifications** for new applications yet. Check
-  `/admin/cce`, or ask for notifications to be added (it would need an email
-  service such as Resend).
+
+#### College picker
+
+The College field suggests colleges as you type, from the official **AISHE**
+directory (Ministry of Education, Government of India: about 1,400
+universities and 54,000 colleges, under the Open Government License – India,
+credited under the form). Picking one stores the list's own spelling and its
+id, so "SGSITS", "S.G.S.I.T.S" and the full name all end up as one college.
+
+- **Matching** (`api/_lib/colleges.js`) understands short forms built from
+  the initials ("sgsits", "manit", "davv"), short form plus city ("iit
+  indore"), names with or without hyphens ("medicaps" / "medi caps") and
+  typos ("acropolis institue"). Ties go to universities, then to Madhya
+  Pradesh. It's served by `GET /api/cce?q=…`, inside the form's existing
+  function (see the function limit below), with a day of CDN caching.
+- **Not listed?** Applicants can choose "My college isn't listed" and type
+  it; it's saved as text and tagged **Not in list** in `/admin/cce`. If the
+  search is ever unreachable, that option is all they see, so nobody is
+  blocked from applying.
+- **In `/admin/cce`** the **College** dropdown lists every college that has
+  applied, with counts (typed names that differ only in case or spacing
+  count together), and works alongside the status filters. Clicking a
+  card's college filters to it. **Link to college** on a typed or older
+  application attaches it to the official entry; it then counts under that
+  college, and the card keeps "(they wrote: …)".
+
+To refresh the list (AISHE updates it yearly): on
+[dashboard.aishe.gov.in/hedirectory](https://dashboard.aishe.gov.in/hedirectory),
+open **University** and then **Colleges** and use the green Excel icon on each,
+then:
+
+```bash
+python -I scripts/aishe-to-csv.py --universities University.xlsx --colleges College.xlsx
+npm run db:import-colleges
+```
+
+That rewrites `db/colleges.csv.gz` (commit it) and upserts by AISHE code, so
+existing links keep pointing at the right college. Don't save the downloads
+inside `assets/` or anywhere else in the site folder: everything there is
+published.
 
 ### Vercel's function limit
 
@@ -346,7 +386,9 @@ and every routed file under `api/` counts as one (files and folders starting
 with `_` don't). Go over and the build succeeds but the deploy fails with no
 clear error. That happened once when the CCE endpoints took the count to 13.
 
-The count is currently **11**. To stay under the limit, the three auth
+The count is currently **11**. The college search (`GET /api/cce?q=`) lives
+inside the CCE form's function rather than its own file for the same reason.
+To stay under the limit, the three auth
 endpoints share one function: `api/auth.js` dispatches to the handlers in
 `api/_lib/auth/`, and `vercel.json` rewrites `/api/auth/login` (and
 `logout`, `session`) to it, so their URLs never changed. Before adding a new

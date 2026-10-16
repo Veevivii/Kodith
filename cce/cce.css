@@ -64,6 +64,12 @@
 .cce-actions { margin-top: 28px; }
 .cce-actions .btn[disabled] { opacity: 0.6; cursor: progress; }
 .cce-privacy { margin-top: 14px; font-size: 0.8125rem; color: var(--text-muted); }
+.cce-privacy + .cce-privacy { margin-top: 6px; }
+.cce-privacy a { color: var(--text-muted); border-bottom: 1px solid var(--hairline); }
+.cce-privacy a:hover { color: var(--text); }
+
+/* under the College field once they've picked (or chosen "not listed") */
+.cce-picked { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.02em; color: var(--accent-warm); line-height: 1.45; }
 
 .cce-form__error {
   margin-bottom: 22px; padding: 14px 16px;

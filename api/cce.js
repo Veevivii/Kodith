@@ -1,6 +1,7 @@
 // POST /api/cce — public endpoint behind the "Become CCE" form at /cce.
+// GET  /api/cce?q= — college suggestions for that form (public AISHE data).
 //
-// It can only insert. Applications contain applicants' personal details, so
+// For applications it can only insert. They contain applicants' personal details, so
 // reading them back goes exclusively through api/admin/cce.js, which is
 // session-gated like every other admin route.
 //
@@ -16,6 +17,7 @@
 import crypto from "node:crypto";
 import { sql } from "./_lib/db.js";
 import { notifyNewApplication } from "./_lib/notify.js";
+import { searchColleges } from "./_lib/colleges.js";
 
 const MIN_FILL_MS = 2500;
 const RATE_LIMIT = 5;            // submissions per network per hour
@@ -49,7 +51,28 @@ function clientIp(request) {
   return fwd || request.socket?.remoteAddress || "unknown";
 }
 
+// GET /api/cce?q=... : college suggestions for the form's College field, from
+// the AISHE list (public data, see api/_lib/colleges.js). Lives here rather
+// than in its own file to stay under Vercel's function limit (README).
+async function suggestColleges(request, response) {
+  const q = String((request.query && request.query.q) || "").trim();
+  if (q.length < 2 || q.length > 80) {
+    response.status(400).json({ error: "Type 2 to 80 characters to search." });
+    return;
+  }
+  try {
+    const rows = await searchColleges(sql, q);
+    // The list changes once a year, so the CDN can answer repeat searches.
+    response.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
+    response.status(200).json(rows);
+  } catch (err) {
+    console.error("api/cce college search failed:", err);
+    response.status(500).json({ error: "College search is unavailable right now." });
+  }
+}
+
 export default async function handler(request, response) {
+  if (request.method === "GET") return suggestColleges(request, response);
   if (request.method !== "POST") {
     response.status(405).json({ error: "Method not allowed" });
     return;
@@ -83,6 +106,22 @@ export default async function handler(request, response) {
     }
     if (body.consent !== true) problems.push("Please confirm we can contact you about the role.");
 
+    // College: picked from the AISHE list (stored with its id and the list's
+    // own spelling, so applications group cleanly), or typed by someone who
+    // said theirs isn't listed (kept as text, college_id NULL).
+    v.college_id = null;
+    v.college_place = "";
+    const pickedId = body.college_id === undefined || body.college_id === null || body.college_id === "" ? null : Number(body.college_id);
+    if (pickedId !== null) {
+      const [c] = Number.isInteger(pickedId) && pickedId > 0
+        ? await sql`SELECT id, name, district, state FROM colleges WHERE id = ${pickedId}`
+        : [];
+      if (!c) problems.push("Please pick your college from the list again.");
+      else { v.college_id = c.id; v.college = c.name; v.college_place = [c.district, c.state].filter(Boolean).join(", "); }
+    } else if (v.college && body.college_unlisted !== true) {
+      problems.push("Pick your college from the list, or choose \"My college isn't listed\".");
+    }
+
     if (problems.length) {
       response.status(400).json({ error: problems[0], problems });
       return;
@@ -102,8 +141,8 @@ export default async function handler(request, response) {
     }
 
     const [saved] = await sql`
-      INSERT INTO cce_applications (name, email, phone, college, course_year, city, linkedin, about, motivation, ip_hash)
-      VALUES (${v.name}, ${v.email}, ${v.phone}, ${v.college}, ${v.course_year}, ${v.city}, ${v.linkedin},
+      INSERT INTO cce_applications (name, email, phone, college, college_id, course_year, city, linkedin, about, motivation, ip_hash)
+      VALUES (${v.name}, ${v.email}, ${v.phone}, ${v.college}, ${v.college_id}, ${v.course_year}, ${v.city}, ${v.linkedin},
               ${v.about}, ${v.motivation}, ${ipHash})
       RETURNING id
     `;

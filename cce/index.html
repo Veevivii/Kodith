@@ -12,6 +12,7 @@
 <!-- Root-relative paths: this page is served at /cce with no trailing slash. -->
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="stylesheet" href="/cce/cce.css">
+<link rel="stylesheet" href="/css/college-search.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z' fill='%23FF8A4C'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -49,14 +50,21 @@
           <input id="f-email" name="email" required aria-describedby="email-hint" maxlength="200" type="email" autocomplete="email" placeholder="">
           <span class="cce-hint" id="email-hint">We'll reply here.</span>
         </div>
+        <!-- Full width so long official names fit in the suggestions. A pick from the
+             AISHE list sets college_id; "not listed" keeps the typed text instead. -->
+        <div class="cce-field cce-field--wide">
+          <label for="f-college">College</label>
+          <div class="cs-wrap">
+            <input id="f-college" name="college" required maxlength="150" type="text" aria-describedby="college-hint" placeholder="Start typing your college's name">
+            <ul id="college-list"></ul>
+          </div>
+          <input type="hidden" id="f-college_id" name="college_id">
+          <span class="cce-hint" id="college-hint">Pick your college from the list. Not there? Choose &ldquo;My college isn't listed&rdquo;.</span>
+          <span class="cce-picked" id="college-picked" hidden></span>
+        </div>
         <div class="cce-field">
           <label for="f-phone">Phone / WhatsApp <span class="cce-opt">optional</span></label>
           <input id="f-phone" name="phone" maxlength="30" type="tel" autocomplete="tel" placeholder="">
-          
-        </div>
-        <div class="cce-field">
-          <label for="f-college">College</label>
-          <input id="f-college" name="college" required maxlength="150" type="text" autocomplete="organization" placeholder="">
           
         </div>
         <div class="cce-field">
@@ -69,7 +77,7 @@
           <input id="f-city" name="city" maxlength="80" type="text" autocomplete="address-level2" placeholder="">
           
         </div>
-        <div class="cce-field cce-field--wide">
+        <div class="cce-field">
           <label for="f-linkedin">LinkedIn <span class="cce-opt">optional</span></label>
           <input id="f-linkedin" name="linkedin" maxlength="300" type="url" placeholder="linkedin.com/in/your-profile">
           
@@ -101,6 +109,7 @@
         <button type="submit" class="btn btn--primary" id="submitBtn">Send application</button>
       </div>
       <p class="cce-privacy">We only use these details to get in touch with you about this role.</p>
+      <p class="cce-privacy">College list: <a href="https://dashboard.aishe.gov.in/hedirectory" target="_blank" rel="noopener noreferrer">AISHE</a>, Ministry of Education, Government of India (Open Government License &ndash; India).</p>
     </form>
 
     <div class="cce-done" id="done" tabindex="-1" hidden>
@@ -131,6 +140,7 @@
   </div>
 </main>
 
+<script src="/js/college-search.js" defer></script>
 <script src="/cce/cce.js" defer></script>
 </body>
 </html>

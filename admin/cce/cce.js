@@ -20,8 +20,10 @@
 
   var apps = [];
   var filter = "all";
+  var collegeFilter = "all";
   var host = document.getElementById("apps");
   var filtersEl = document.getElementById("filters");
+  var collegeSel = document.getElementById("collegeFilter");
   var alertEl = document.getElementById("alertStatus");
 
   function el(tag, cls, text) {
@@ -50,6 +52,96 @@
     });
   }
 
+  /* ---------------------------------------------------------- colleges */
+  /* Applications group by the AISHE college they're linked to (picked on the
+     form, or linked here), and typed-in ones by their text, ignoring case and
+     spacing, so "SKITM" and "skitm " count together until someone links them. */
+  function tidy(s) { return String(s || "").trim().replace(/\s+/g, " "); }
+  function collegeKey(a) {
+    return a.college_id ? "c" + a.college_id : "t:" + tidy(a.college).toLowerCase();
+  }
+  /* district (and state) to show after the name, unless the name already says
+     it: "Indian Institute of Technology, Indore", not "…, Indore, Indore" */
+  function placeOf(a, withState) {
+    var name = String(a.college_name || "").toLowerCase(), parts = [];
+    if (a.college_district && name.indexOf(a.college_district.toLowerCase()) === -1) parts.push(a.college_district);
+    if (withState && a.college_state) parts.push(a.college_state);
+    return parts;
+  }
+  function collegeLabel(a) {
+    return a.college_id ? [a.college_name].concat(placeOf(a, false)).join(", ") : (tidy(a.college) || "(no college)");
+  }
+  function renderCollegeFilter() {
+    var groups = {}, order = [];
+    apps.forEach(function (a) {
+      var k = collegeKey(a);
+      if (!groups[k]) { groups[k] = { key: k, label: collegeLabel(a), linked: !!a.college_id, n: 0 }; order.push(groups[k]); }
+      groups[k].n++;
+    });
+    order.sort(function (x, y) { return (y.linked - x.linked) || (y.n - x.n) || x.label.localeCompare(y.label); });
+    if (collegeFilter !== "all" && !groups[collegeFilter]) collegeFilter = "all";
+    collegeSel.innerHTML = "";
+    var all = el("option", null, "All colleges · " + order.length);
+    all.value = "all"; collegeSel.appendChild(all);
+    order.forEach(function (g) {
+      var o = el("option", null, g.label + " · " + g.n + (g.linked ? "" : " · not in list"));
+      o.value = g.key; collegeSel.appendChild(o);
+    });
+    collegeSel.value = collegeFilter;
+  }
+  collegeSel.addEventListener("change", function () { collegeFilter = collegeSel.value; render(); });
+
+  /* Search the same AISHE list as the form, and link this application to the
+     college picked. Typed or older entries then count under that college. */
+  function openLinkBox(a, card, anchor) {
+    if (card.querySelector(".cce-link")) { card.querySelector(".cce-link input").focus(); return; }
+    var box = el("div", "cce-link");
+    var lid = "link-" + a.id;
+    var lab = el("label", "cce-app__label", a.college_id ? "Change the college" : "Link to the official college");
+    lab.htmlFor = lid;
+    var wrap = el("div", "cs-wrap");
+    var input = el("input", "cce-link__input"); input.id = lid; input.type = "text"; input.maxLength = 80;
+    input.placeholder = "Search the AISHE list";
+    input.value = a.college_id ? "" : String(a.college || "");
+    var ul = el("ul");
+    wrap.appendChild(input); wrap.appendChild(ul);
+    var cancel = el("button", "cce-link__cancel", "Cancel"); cancel.type = "button";
+    cancel.addEventListener("click", function () { box.remove(); });
+    box.appendChild(lab); box.appendChild(wrap); box.appendChild(cancel);
+    anchor.after(box);
+    var picker = window.KodithCollegeSearch.attach(input, {
+      listbox: ul,
+      onPick: function (c) {
+        api(ENDPOINT + "?id=" + a.id, { method: "PATCH", jsonBody: { college_id: c.id } })
+          .then(function (row) {
+            a.college_id = row.college_id; a.college_name = row.college_name; a.college_district = row.college_district; a.college_state = row.college_state;
+            render(); toast("Linked to " + row.college_name + ".");
+          })
+          .catch(function (err) { toast(err.message, true); });
+      },
+    });
+    input.focus();
+    if (input.value.trim().length >= 2) picker.search();
+  }
+  function collegeLine(a, card) {
+    var line = el("p", "cce-app__sub cce-app__college");
+    if (a.college_id) {
+      var go = el("button", "cce-app__collegeBtn", [a.college_name].concat(placeOf(a, true)).join(", "));
+      go.type = "button"; go.title = "Show only applications from this college";
+      go.addEventListener("click", function () { collegeFilter = collegeKey(a); render(); });
+      line.appendChild(go);
+      var typed = tidy(a.college);
+      if (typed && typed.toLowerCase() !== String(a.college_name || "").toLowerCase()) line.appendChild(el("span", "cce-app__wrote", "(they wrote: " + typed + ")"));
+    } else {
+      line.appendChild(el("span", null, tidy(a.college) || "(no college)"));
+      line.appendChild(el("span", "cce-app__notlisted", "Not in list"));
+    }
+    var act = el("button", "cce-app__linkBtn", a.college_id ? "Change" : "Link to college"); act.type = "button";
+    act.addEventListener("click", function () { openLinkBox(a, card, line); });
+    line.appendChild(act);
+    return line;
+  }
+
   /* ---------------------------------------------------------- list */
   function renderApp(a) {
     var card = el("article", "cce-app");
@@ -57,8 +149,7 @@
     var head = el("div", "cce-app__head");
     var who = el("div", "cce-app__who");
     who.appendChild(el("h3", "cce-app__name", a.name));
-    var sub = [a.college, a.course_year].filter(Boolean).join(" · ");
-    who.appendChild(el("p", "cce-app__sub", sub));
+    if (a.course_year) who.appendChild(el("p", "cce-app__sub", a.course_year));
     head.appendChild(who);
 
     var right = el("div", "cce-app__right");
@@ -82,6 +173,7 @@
     right.appendChild(select);
     head.appendChild(right);
     card.appendChild(head);
+    card.appendChild(collegeLine(a, card));
 
     var contact = el("p", "cce-app__contact");
     if (EMAIL_RE.test(a.email)) contact.appendChild(link("mailto:" + a.email, a.email));
@@ -140,12 +232,16 @@
   function render() {
     renderAlertStatus();
     renderFilters();
+    renderCollegeFilter();
     host.innerHTML = "";
-    var shown = filter === "all" ? apps : apps.filter(function (a) { return a.status === filter; });
+    var shown = apps.filter(function (a) {
+      return (filter === "all" || a.status === filter) && (collegeFilter === "all" || collegeKey(a) === collegeFilter);
+    });
     if (!shown.length) {
-      host.appendChild(el("p", "admin-empty", apps.length
-        ? "No " + LABEL[filter].toLowerCase() + " applications."
-        : "No applications yet. They'll appear here as soon as someone sends the form at kodith.vercel.app/cce."));
+      host.appendChild(el("p", "admin-empty", !apps.length
+        ? "No applications yet. They'll appear here as soon as someone sends the form at kodith.vercel.app/cce."
+        : collegeFilter !== "all" ? "No " + (filter === "all" ? "" : LABEL[filter].toLowerCase() + " ") + "applications from this college."
+        : "No " + LABEL[filter].toLowerCase() + " applications."));
       return;
     }
     shown.forEach(function (a) { host.appendChild(renderApp(a)); });

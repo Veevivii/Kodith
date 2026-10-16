@@ -467,6 +467,34 @@
 .cce-app__head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
 .cce-app__name { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
 .cce-app__sub { color: var(--text-muted); font-size: 0.875rem; margin-top: 2px; }
+
+/* by-college filter and the college line on each card */
+.cce-collegeFilter { display: flex; flex-direction: column; gap: 6px; margin: -6px 0 18px; max-width: 100%; }
+.cce-collegeFilter select {
+  font: inherit; font-size: 0.875rem; color: var(--text); background: var(--bg); max-width: 100%;
+  border: 1px solid var(--hairline); border-radius: var(--radius); padding: 8px 10px;
+}
+.cce-app__college { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 10px; color: var(--text); }
+.cce-app__collegeBtn {
+  font: inherit; color: var(--text); background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+  border-bottom: 1px solid var(--hairline);
+}
+.cce-app__collegeBtn:hover { color: var(--accent-warm); border-bottom-color: rgba(var(--warm-rgb), 0.5); }
+.cce-app__wrote { color: var(--text-muted); font-size: 0.8125rem; }
+.cce-app__notlisted {
+  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--text-muted);
+  border: 1px solid var(--hairline); border-radius: 999px; padding: 2px 8px;
+}
+.cce-app__linkBtn {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.03em; color: var(--accent-warm);
+  background: none; border: 0; padding: 0; cursor: pointer; border-bottom: 1px solid rgba(var(--warm-rgb), 0.4);
+}
+.cce-link { margin-top: 12px; padding: 14px; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--bg); }
+.cce-link__input {
+  width: 100%; font: inherit; font-size: 0.9375rem; color: var(--text); background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--radius); padding: 10px 12px;
+}
+.cce-link__cancel { margin-top: 10px; font: inherit; font-size: 0.8125rem; color: var(--text-muted); background: none; border: 0; padding: 0; cursor: pointer; }
 .cce-app__right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .cce-app__date { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
 .cce-status {

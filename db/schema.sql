@@ -118,3 +118,27 @@ ALTER TABLE cce_applications ADD CONSTRAINT cce_applications_status_check
 -- One application per person, and capitalisation can't sneak a second one in.
 CREATE UNIQUE INDEX IF NOT EXISTS cce_applications_email_lower_idx ON cce_applications (lower(email));
 CREATE INDEX IF NOT EXISTS cce_applications_created_idx ON cce_applications (created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- Colleges for the CCE college picker: the AISHE directory (Ministry of
+-- Education, Open Government License - India), loaded from db/colleges.csv.gz
+-- by scripts/import-colleges.mjs. `search` and `acronym` are built by
+-- api/_lib/colleges.js, and the trigram index lets a typed fragment match
+-- anywhere in a name quickly.
+-- ---------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE TABLE IF NOT EXISTS colleges (
+  id          SERIAL PRIMARY KEY,
+  aishe_code  TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  district    TEXT NOT NULL DEFAULT '',
+  state       TEXT NOT NULL DEFAULT '',
+  kind        TEXT NOT NULL CHECK (kind IN ('university', 'college')),
+  acronym     TEXT NOT NULL DEFAULT '',
+  search      TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS colleges_search_trgm_idx ON colleges USING gin (search gin_trgm_ops);
+-- the college an applicant picked (or an admin linked later). NULL means they
+-- typed one that isn't in the list, kept as text in cce_applications.college
+ALTER TABLE cce_applications ADD COLUMN IF NOT EXISTS college_id INTEGER REFERENCES colleges(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS cce_applications_college_idx ON cce_applications (college_id);

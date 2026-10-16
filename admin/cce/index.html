@@ -10,6 +10,7 @@
      trailing slash, so relative paths would resolve against /admin/ (or /). -->
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="stylesheet" href="/admin/admin.css">
+<link rel="stylesheet" href="/css/college-search.css">
 </head>
 <body class="admin-body">
 
@@ -62,6 +63,10 @@
            always as text (never HTML), since the content comes from the public form. -->
       <p class="cce-alert" id="alertStatus" role="status" hidden></p>
       <div class="cce-filters" id="filters" role="group" aria-label="Filter by status"></div>
+      <label class="cce-collegeFilter">
+        <span class="cce-app__label">College</span>
+        <select id="collegeFilter"><option value="all">All colleges</option></select>
+      </label>
       <div id="apps"></div>
     </section>
   </main>
@@ -70,6 +75,7 @@
 <div class="admin-toast" id="toast" hidden></div>
 
 <script src="/admin/admin-shared.js" defer></script>
+<script src="/js/college-search.js" defer></script>
 <script src="/admin/cce/cce.js" defer></script>
 </body>
 </html>
