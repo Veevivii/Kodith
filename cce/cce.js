@@ -86,6 +86,9 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (body) { return { ok: r.ok, body: body }; }); })
       .then(function (res) {
         if (!res.ok) throw new Error(res.body.error || "Something went wrong. Please try again, or email us instead.");
+        // Thank them by first name. textContent, never HTML: this is what they typed.
+        var first = value("name").split(/\s+/)[0];
+        if (first) document.getElementById("doneTitle").textContent = "Thanks, " + first + ". We've got it.";
         form.hidden = true;
         var done = document.getElementById("done");
         done.hidden = false;

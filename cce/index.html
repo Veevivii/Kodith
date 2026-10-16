@@ -104,8 +104,19 @@
     </form>
 
     <div class="cce-done" id="done" tabindex="-1" hidden>
+      <!-- Drawn in orange, then redrawn in green over it: see .cce-tick in cce.css. -->
+      <div class="cce-tick" aria-hidden="true">
+        <svg viewBox="0 0 72 72" width="72" height="72" focusable="false">
+          <circle class="cce-tick__disc" cx="36" cy="36" r="30"/>
+          <circle class="cce-tick__ripple" cx="36" cy="36" r="30"/>
+          <circle class="cce-tick__ring cce-tick--warm" cx="36" cy="36" r="30" pathLength="100"/>
+          <circle class="cce-tick__ring cce-tick--signal" cx="36" cy="36" r="30" pathLength="100"/>
+          <path class="cce-tick__mark cce-tick--warm" d="M23 37l9 9 18-20" pathLength="100"/>
+          <path class="cce-tick__mark cce-tick--signal" d="M23 37l9 9 18-20" pathLength="100"/>
+        </svg>
+      </div>
       <p class="eyebrow">Application sent</p>
-      <h2 class="h2">Thanks, we've got it.</h2>
+      <h2 class="h2" id="doneTitle">Thanks, we've got it.</h2>
       <p class="lede">We'll get back to you on the email you gave us. Meanwhile, the community lives on Discord.</p>
       <div class="joinrow">
         <a class="btn btn--primary" href="https://discord.gg/kaYgkZYV2g" target="_blank" rel="noopener noreferrer">Join the Discord</a>

@@ -74,7 +74,63 @@
 
 .cce-done { margin-top: 40px; padding: 32px 28px; background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); }
 .cce-done:focus { outline: none; }
-.cce-done .h2 { margin-bottom: 12px; }
+.cce-done .h2 { margin-bottom: 12px; overflow-wrap: anywhere; }
+
+/* Success tick. Plays once, on its own, when #done stops being hidden (CSS
+   animations start when an element is displayed). The tick draws in orange,
+   then a green copy with identical geometry sweeps over it, the disc tint
+   follows, and it lands with a small pop and a ripple. About 1.5s in all. */
+.cce-tick {
+  width: 72px; height: 72px; margin-bottom: 22px;
+  animation: cce-tick-in 0.32s var(--ease) both, cce-tick-pop 0.36s var(--ease) 1.12s forwards;
+}
+.cce-tick svg { display: block; overflow: visible; }
+.cce-tick__ring, .cce-tick__mark {
+  fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+  /* pathLength="100" on each, so 100 is one full stroke. The gap is a touch longer and the
+     start offset is 102, so an undrawn stroke shows nothing, not even its round end cap. */
+  stroke-dasharray: 100 102; stroke-dashoffset: 102;
+}
+.cce-tick__ring { transform: rotate(-90deg); transform-box: fill-box; transform-origin: center; }   /* draw from 12 o'clock */
+.cce-tick--warm   { stroke: var(--accent-warm); }
+.cce-tick--signal { stroke: var(--accent-signal); stroke-width: 4.4; }   /* a hair wider, so no orange shows at the edges */
+
+.cce-tick__ring.cce-tick--warm   { animation: cce-draw 0.5s var(--ease) both, cce-fade 0.2s linear 1.15s forwards; }
+.cce-tick__mark.cce-tick--warm   { animation: cce-draw 0.34s var(--ease) 0.28s both, cce-fade 0.2s linear 1.15s forwards; }
+.cce-tick__ring.cce-tick--signal { animation: cce-draw 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.72s both; }
+.cce-tick__mark.cce-tick--signal { animation: cce-draw 0.3s var(--ease) 0.9s both; }
+
+.cce-tick__disc { fill: rgba(var(--warm-rgb), 0.1); animation: cce-disc 0.45s ease-in-out 0.72s both; }
+.cce-tick__ripple {
+  fill: none; stroke: rgba(var(--signal-rgb), 0.55); stroke-width: 2; opacity: 0;
+  transform-box: fill-box; transform-origin: center;
+  animation: cce-ripple 0.7s var(--ease) 1.12s forwards;   /* not "both": it must stay invisible while it waits */
+}
+
+/* the message rises in behind the tick */
+.cce-done > :not(.cce-tick) { animation: cce-rise 0.4s var(--ease) both; }
+.cce-done > :nth-child(2) { animation-delay: 0.3s; }
+.cce-done > :nth-child(3) { animation-delay: 0.38s; }
+.cce-done > :nth-child(4) { animation-delay: 0.46s; }
+.cce-done > :nth-child(5) { animation-delay: 0.54s; }
+
+@keyframes cce-draw    { from { stroke-dashoffset: 102; } to { stroke-dashoffset: 0; } }
+@keyframes cce-fade    { to { opacity: 0; } }
+@keyframes cce-disc    { from { fill: rgba(var(--warm-rgb), 0.1); } to { fill: rgba(var(--signal-rgb), 0.12); } }
+@keyframes cce-tick-in { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: none; } }
+@keyframes cce-tick-pop { 50% { transform: scale(1.07); } }
+@keyframes cce-ripple  { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+@keyframes cce-rise    { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* The site-wide reduced-motion rule shortens animations but keeps their
+   delays, so this panel opts out completely: the finished green tick and
+   the message, straight away. */
+@media (prefers-reduced-motion: reduce) {
+  .cce-tick, .cce-tick *, .cce-done > * { animation: none !important; }
+  .cce-tick--warm, .cce-tick__ripple { display: none; }
+  .cce-tick__ring, .cce-tick__mark { stroke-dashoffset: 0; }
+  .cce-tick__disc { fill: rgba(var(--signal-rgb), 0.12); }
+}
 
 .cce-alt { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--hairline); color: var(--text-muted); font-size: 0.9375rem; line-height: 1.6; }
 .cce-alt a { color: var(--text); border-bottom: 1px solid var(--hairline); }
