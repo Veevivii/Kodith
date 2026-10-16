@@ -14,8 +14,8 @@
   var toast = window.KodithAdmin.toast;
   var api = window.KodithAdmin.api;
   var ENDPOINT = "/api/admin/cce";
-  var STATUSES = ["new", "shortlisted", "contacted", "rejected"];
-  var LABEL = { all: "All", new: "New", shortlisted: "Shortlisted", contacted: "Contacted", rejected: "Rejected" };
+  var STATUSES = ["new", "shortlisted", "contacted", "accepted", "rejected"];
+  var LABEL = { all: "All", new: "New", shortlisted: "Shortlisted", contacted: "Contacted", accepted: "Accepted", rejected: "Rejected" };
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   var apps = [];

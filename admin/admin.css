@@ -475,6 +475,7 @@
 }
 .cce-status--new { border-color: rgba(var(--warm-rgb), 0.6); }
 .cce-status--shortlisted { border-color: rgba(var(--signal-rgb), 0.6); }
+.cce-status--accepted { border-color: var(--accent-signal); color: var(--accent-signal); }
 .cce-app__contact { margin-top: 12px; font-family: var(--font-mono); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .cce-app__contact a { color: var(--text); border-bottom: 1px solid var(--hairline); }
 .cce-app__contact a:hover { color: var(--accent-signal); }

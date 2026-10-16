@@ -292,7 +292,7 @@ college, optional phone / course / city / LinkedIn, and two short answers
 (about them, and why they want Kodith at their college). Submissions land
 in the `cce_applications` table of the same database as everything else,
 and you review them at **`/admin/cce`** behind the usual admin login: filter
-by status (new / shortlisted / contacted / rejected), keep private notes,
+by status (new / shortlisted / contacted / accepted / rejected), keep private notes,
 or delete.
 
 Worth knowing:

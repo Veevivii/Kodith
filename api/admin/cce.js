@@ -8,7 +8,7 @@
 import { sql } from "../_lib/db.js";
 import { requireAuth } from "../_lib/require-auth.js";
 
-const STATUSES = ["new", "shortlisted", "contacted", "rejected"];
+const STATUSES = ["new", "shortlisted", "contacted", "accepted", "rejected"];
 
 export default async function handler(request, response) {
   const session = await requireAuth(request, response);

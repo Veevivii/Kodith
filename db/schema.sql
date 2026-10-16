@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS cce_applications (
   linkedin     TEXT NOT NULL DEFAULT '',
   about        TEXT NOT NULL,
   motivation   TEXT NOT NULL,
-  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'shortlisted', 'contacted', 'rejected')),
+  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'shortlisted', 'contacted', 'accepted', 'rejected')),
   notes        TEXT NOT NULL DEFAULT '',
   -- salted hash of the submitter's IP, used only to rate-limit the public
   -- form. The raw address is never stored
@@ -110,6 +110,11 @@ CREATE TABLE IF NOT EXISTS cce_applications (
 -- notify_error arrived after the table was first created, so databases made
 -- before then get it here (a no-op everywhere else)
 ALTER TABLE cce_applications ADD COLUMN IF NOT EXISTS notify_error TEXT NOT NULL DEFAULT '';
+-- 'accepted' was added to the statuses later, so the allowed list is rebuilt
+-- here for databases made before then (it ends up identical everywhere)
+ALTER TABLE cce_applications DROP CONSTRAINT IF EXISTS cce_applications_status_check;
+ALTER TABLE cce_applications ADD CONSTRAINT cce_applications_status_check
+  CHECK (status IN ('new', 'shortlisted', 'contacted', 'accepted', 'rejected'));
 -- One application per person, and capitalisation can't sneak a second one in.
 CREATE UNIQUE INDEX IF NOT EXISTS cce_applications_email_lower_idx ON cce_applications (lower(email));
 CREATE INDEX IF NOT EXISTS cce_applications_created_idx ON cce_applications (created_at DESC);
